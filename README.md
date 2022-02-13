@@ -10,10 +10,12 @@ ca. 3 "overworld" maps mit:
 - Dorf /Stadt (Händler/Trainer/Quest)
 - Spawnpoint (Story-Start, Quest)
 - NPC-Gegner
+- Optional: 1 End-Boss Map
 
 Durch Portale betretbare Underworld:
 - prozedural Generierter Content (ev. mit rogue-like Elementen)
-- Optional: 1 End-Boss Map
+- Co-Op Gameplay
+
 
 
 
