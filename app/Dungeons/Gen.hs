@@ -5,18 +5,19 @@ module Dungeons.Gen where
 
 import Prelude as P
 
-import Data.List
+import Data.List as LIST
 import qualified Data.List.NonEmpty as LNE
 import Data.Random.Normal
 import Data.Tree as Tree
 import Data.Ext as EXT
+import Data.Map.Internal as MAP
 
 import Graphics.Gloss as GLOSS
 import Graphics.Gloss.Export.Image
 import Codec.Picture
 
 import System.Random
-import Control.Lens
+import Control.Lens as LENS
 
 import Data.Geometry as GEO
 import Algorithms.Geometry.DelaunayTriangulation.Naive
@@ -36,7 +37,7 @@ type FlockingFunction = (Agent -> Agents -> Agent)
 
 ------------------------------- Variables -------------------------------
 
-seed = 420
+seed = 69
 
 sideLen :: Float
 sideLen = 500
@@ -47,13 +48,13 @@ midY = sideLen / 2
 nCircles = 100
 
 sd = sideLen / 50
-meanRadius = sideLen / 100
+meanRadius = sideLen / 50
 
 radii :: [Float]
-radii = reverse . sort $ take nCircles (mkNormals' (meanRadius, sd) seed)
+radii = reverse . sort $ LIST.take nCircles (mkNormals' (meanRadius, sd) seed)
 
 nRandoms :: RandomGen g => Int -> Float -> Float -> g -> [Float]
-nRandoms n min max = take n . unfoldr (Just . uniformR (min, max))
+nRandoms n min max = LIST.take n . unfoldr (Just . uniformR (min, max))
 
 centers = zip xCors yCors
             where
@@ -116,7 +117,7 @@ touchesOtherCircles circle@(r, (x, y)) ((r', (x', y')):rest)
                     | otherwise = touchesOtherCircles circle rest
 
 driveOut :: Circles -> Int -> Circles
-driveOut circles i = (take i circles) ++ (circle' : (drop (i+1) circles))
+driveOut circles i = LIST.take i circles ++ (circle' : LIST.drop (i+1) circles)
                 where circle' = driveOut' $ circles !! i
 
 -- didn't cover edge case where center of circle == center of image 
@@ -167,13 +168,13 @@ iterateOver n agents
             | otherwise       = iterateOver (n + 1) (flock agents)
 
 flock :: Agents -> Agents
-flock agents = applyIteration $ Data.List.transpose [agents, align agents, separate agents] -- [align agents, makeCoherent agents, separate agents]
+flock agents = applyIteration $ LIST.transpose [agents, align agents, separate agents] -- [align agents, makeCoherent agents, separate agents]
 
 flock' :: Agents -> Agents
-flock' agents = applyIteration $ Data.List.transpose [agents, align agents, makeCoherent agents, separate agents]
+flock' agents = applyIteration $ LIST.transpose [agents, align agents, makeCoherent agents, separate agents]
 
 applyIteration :: [Agents] -> Agents
-applyIteration = map applyVectors
+applyIteration = LIST.map applyVectors
 
 applyVectors :: Agents -> Agent
 applyVectors [] = (0, (0,0), (0,0), 0)
@@ -204,7 +205,7 @@ countNeigborsIWith agents i f
                     | otherwise = countNeigborsIWith (countNeigborsIWith' agents i f) (i+1) f
 
 countNeigborsIWith' :: Agents -> Int -> FlockingFunction -> Agents
-countNeigborsIWith' agents i f = take i agents ++ (agent' : (drop (i+1) agents))
+countNeigborsIWith' agents i f = LIST.take i agents ++ (agent' : LIST.drop (i+1) agents)
                     where
                         agent' = f (agents !! i) agents
 
@@ -298,7 +299,7 @@ removeCircles' gen (x:xs) = xOrEmpty ++ removeCircles' gen' xs
                         xOrEmpty = [x | p < 0.6]
 
 removeCircles'' :: Circles -> Circles
-removeCircles'' = take (round $ fromIntegral nCircles / 2)
+removeCircles'' = LIST.take (round $ fromIntegral nCircles / 2)
 
 
 ------------------------------- Delauny / Minimum Spanning Tree -------------------------------    
@@ -372,16 +373,38 @@ makeLines point (t:ts) = picture' : makeLines point ts
                     y' = _core point' ^. yCoord
                     r' = _extra point'
                     paths = calcPaths (x,y) (x',y') (r,r')
-                    additionalPaths = additionalTunnels point $ mkStdGen $ round $ x*y
-                    pictures' = map (color white . polygon) paths
+                    additionalPaths = additionalTunnel point $ mkStdGen $ round $ x*y
+                    pictures' = LIST.map (color white . polygon) (paths ++ additionalPaths)
                     picture = pictures pictures'
                     picture' = GLOSS.translate (-midX) (-midY) picture
 
-additionalTunnels :: GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
-additionalTunnels x gen = tunnelOrEmpty
+additionalTunnel :: GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
+additionalTunnel point gen = tunnelOrEmpty
                     where
-                        (p, _) = randomR (0,1) gen :: (Float, StdGen)
-                        tunnelOrEmpty = []-- [x | p < 0.6]
+                        (p, gen') = randomR (0,1) gen :: (Float, StdGen)
+                        tunnelOrEmpty = if p < 0.7 then []
+                                        else pathToRandomNeigbor point gen'
+
+pathToRandomNeigbor :: GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
+pathToRandomNeigbor point gen = case MAP.lookup (_core point) $ view vertexIds triangles of
+                                    Nothing -> []
+                                    Just i -> case view neighbours triangles ^? LENS.element i of
+                                        Nothing -> []
+                                        Just fList -> case fList ^? LENS.element randy of
+                                            Nothing -> []
+                                            Just iNeighbour -> case view positions triangles ^? LENS.element iNeighbour of
+                                                Nothing -> []
+                                                Just neighbour -> calcPaths (x,y) (x',y') (r,r')
+                                                    where
+                                                        x = _core point ^. xCoord
+                                                        y = _core point ^. yCoord
+                                                        r = _extra point
+                                                        x' = _core neighbour ^. xCoord
+                                                        y' = _core neighbour ^. yCoord
+                                                        r' = _extra neighbour
+                                            where
+                                                (i, _) = randomR (0,fromIntegral $ length fList - 1) gen :: (Float, StdGen)
+                                                randy = round i
 
 calcPaths :: (Float, Float) -> (Float, Float) -> (Float, Float) -> [Path]
 calcPaths (x,y) (x',y') (r,r') = paths
