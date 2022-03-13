@@ -1,6 +1,7 @@
 module Main where
     
 import Dungeons.Gen
+import Dungeons.Config
 import Graphics.Gloss
 import GHC.Real (Integral(toInteger))
 

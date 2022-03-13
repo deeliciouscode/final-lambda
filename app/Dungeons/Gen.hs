@@ -4,6 +4,8 @@
 module Dungeons.Gen where
 
 import Prelude as P
+import Dungeons.Config
+import Dungeons.Helpers
 
 import Data.List as LIST
 import qualified Data.List.NonEmpty as LNE
@@ -23,6 +25,7 @@ import Data.Geometry as GEO
 import Algorithms.Geometry.DelaunayTriangulation.Naive
 import Dungeons.NaiveMST
 import Algorithms.Geometry.DelaunayTriangulation.Types
+import Graphics.Gloss (scale, blank)
 
 ------------------------------- Data Types -------------------------------
 
@@ -35,26 +38,10 @@ type Agents = [Agent]
 type FlockingFunction = (Agent -> Agents -> Agent)
 
 
-------------------------------- Variables -------------------------------
-
-seed = 69
-
-sideLen :: Float
-sideLen = 500
-
-midX = sideLen / 2
-midY = sideLen / 2
-
-nCircles = 100
-
-sd = sideLen / 50
-meanRadius = sideLen / 50
+------------------------------- Setup -------------------------------
 
 radii :: [Float]
 radii = reverse . sort $ LIST.take nCircles (mkNormals' (meanRadius, sd) seed)
-
-nRandoms :: RandomGen g => Int -> Float -> Float -> g -> [Float]
-nRandoms n min max = LIST.take n . unfoldr (Just . uniformR (min, max))
 
 centers = zip xCors yCors
             where
@@ -65,35 +52,6 @@ circles = zip radii centers
 
 testCircles :: Circles
 testCircles = [(26.77658,(196.68921,236.81659)),(30.364641,(339.12732,210.95541)),(33.663124,(227.78206,344.70084)),(35.233494,(275.62262,281.27032)),(38.001255,(257.7942,301.88495)),(39.244896,(288.4538,203.14005))]
-
-
-------------------------------- Helpers -------------------------------
-
-round' :: Float -> Integer -> Float
-round' num sg = (fromIntegral . round $ num * f) / f
-    where f = 10^sg
-
-distance :: (Float, Float) -> (Float, Float) -> Float
-distance (x1,y1) (x2,y2) = sqrt ((x1-x2)^2 + (y1-y2)^2)
-
-normalize' :: (Float, Float) -> (Float, Float)
-normalize' (vx,vy) = (vx', vy')
-                where
-                    lenV = distance (0,0) (vx, vy)
-                    vx' = round' (vx / lenV) 2
-                    vy' = round' (vy / lenV) 2
-
--- TODO: Thomas fragen warum das nicht geht (print in func)
--- calcPathsM :: (Float, Float) -> (Float, Float) -> IO [Path]
--- calcPathsM (x,y) (x',y') = do
---                 mx <- makeMonad ((y'-y) / (x'-x))
---                 putStrLn "test"
---                 -- paths <- makeMonad []
---                 print mx
---                 return []
-
--- makeMonad :: Float -> IO Float
--- makeMonad = return
 
 
 ------------------------------- Naively Moving Away from Center -------------------------------
@@ -138,9 +96,6 @@ driveOut' (r, (x,y)) = (r, (newX, newY))
 ------------------------------- Flocking -------------------------------    
 
 circles'' = flockCircles circles
-neighborThreshold = sideLen / 6
-iterations = 30
-velocity = 1.5
 
 flockCircles :: Circles -> Circles
 flockCircles = stripCircles . iterateOver 0 . enrichCircles
@@ -338,6 +293,8 @@ makeMST = euclideanMST
 saveGloss :: IO ()
 saveGloss = exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
 
+picture = pictures $ scale sideLen sideLen blank : [objects]
+
 objects :: Picture
 objects = combinePictures circles'''
 
@@ -431,5 +388,3 @@ calcPaths (x,y) (x',y') (r,r') = paths
                     tri4 = [(x,y),(x',y'),(x'+dx'2,y'+dy'2)]
 
                     paths = [tri1,tri2,tri3,tri4]
-
-
