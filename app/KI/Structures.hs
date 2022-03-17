@@ -1,28 +1,33 @@
 module KI.Structures where
 
 data Entity = Bot  { 
-                  stamina :: Float
-                , style :: String
-                , perimeter :: Int
-                , strength :: Int
-                , speed :: Float
-                , awareness :: Int -- How much is it aware of its
-                , reach :: Int
-                , position :: (Int, Int)
-                , direction :: (Int, Int)
+                  stamina :: Int, 
+                  style :: String,
+                  perimeter :: Int,
+                  strength :: Int,
+                  speed :: Int,
+                  awareness :: Int, -- How much is it aware of its surroundings
+                  reach :: Int,
+                  position :: (Int, Int),
+                  direction :: (Int, Int),
+                  flocking :: Bool
                 } 
                 | Player { 
-                  stamina :: Float
-                , strength :: Int
-                , speed :: Float
-                , position :: (Int, Int)
+                  stamina :: Int,
+                  strength :: Int,
+                  speed :: Int,
+                  position :: (Int, Int),
+                  direction :: (Int, Int)
                 }
+    deriving (Show)
 
 
-data KIState = State { map :: Playground
-                    ,  bots :: [Entity]
-                    ,  players :: [Entity]
-                    }
+data KIState = State { 
+                substrate :: Playground,
+                bots :: [Entity],
+                players :: [Entity]
+              }
+    deriving (Show)
 
 type Playground = ([Int], [Int]) 
 

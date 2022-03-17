@@ -2,6 +2,9 @@ module KI.Config where
 
 import KI.Structures
 
+seed :: Int
+seed = 420
+
 nBots :: Int 
 nBots = 30
 
