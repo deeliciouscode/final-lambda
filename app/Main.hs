@@ -2,8 +2,11 @@ module Main where
     
 import Dungeons.Gen
 import Dungeons.Config
+import Dungeons.Transform
+import KI.KI
 import Graphics.Gloss
 import GHC.Real (Integral(toInteger))
+import Graphics.Image
 
 width, height, offset :: Int
 width = round sideLen
@@ -18,6 +21,11 @@ background = black
 
 main :: IO ()
 main = do
-    putStrLn "Will execute saveGloss"
-    saveGloss
+    putStrLn "executing main..."
+    -- saveGloss
+    -- cluster <- readImageRGB VU "images/test_gloss.png"
+    -- transformToMatrix cluster
+    debugKI
+
+
     -- display window background objects 

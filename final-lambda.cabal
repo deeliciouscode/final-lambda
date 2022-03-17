@@ -46,6 +46,8 @@ executable final-lambda
         ,   gloss == 1.13.2.1
         ,   gloss-export == 0.1.0.4
         ,   GLFW-b == 1.4.8.4
+        ,   hip >= 1.5
+        ,   vector == 0.12.3.0
     other-modules:
         Dungeons.Gen Dungeons.NaiveMST
     hs-source-dirs:   app
