@@ -25,7 +25,8 @@ main = do
     -- saveGloss
     -- cluster <- readImageRGB VU "images/test_gloss.png"
     -- transformToMatrix cluster
-    debugKI
+    -- debugKI
+    simulateKI
 
 
     -- display window background objects 

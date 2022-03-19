@@ -5,31 +5,31 @@ data Entity = Bot  {
                   style :: String,
                   perimeter :: Int,
                   strength :: Int,
-                  speed :: Int,
                   awareness :: Int, -- How much is it aware of its surroundings
                   reach :: Int,
-                  position :: (Int, Int),
-                  direction :: (Int, Int),
+                  position :: (Float, Float),
+                  direction :: (Float, Float),
+                  velocity :: Float,
                   flocking :: Bool
                 } 
                 | Player { 
                   stamina :: Int,
                   strength :: Int,
-                  speed :: Int,
-                  position :: (Int, Int),
-                  direction :: (Int, Int)
+                  position :: (Float, Float),
+                  direction :: (Float, Float),
+                  velocity :: Float
                 }
     deriving (Show)
 
 
 data KIState = State { 
-                substrate :: Playground,
+                substrate :: [[Int]],
                 bots :: [Entity],
                 players :: [Entity]
               }
     deriving (Show)
 
-type Playground = ([Int], [Int]) 
-
+--                    position        direction     veloc  perimeter
+type MovementAttr = ((Float, Float), (Float, Float), Float, Int)
 
 -- data Playground = 
