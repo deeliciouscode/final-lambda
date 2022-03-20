@@ -6,6 +6,7 @@ data Entity = Bot  {
                   strength :: Int,
                   awareness :: Int, -- How much is it aware of its surroundings
                   reach :: Int,
+                  homebase :: (Float, Float),
                   position :: (Float, Float),
                   direction :: (Float, Float),
                   velocity :: Float,
@@ -29,7 +30,10 @@ data KIState = State {
               }
     deriving (Show)
 
---                    position        direction      veloc  perimeter
-type MovementAttr = ((Float, Float), (Float, Float), Float, Float)
+--                    position        direction      homebase        veloc  perimeter
+type MovementAttr = ((Float, Float), (Float, Float), (Float, Float), Float, Float)
+
+--                          position        direction      velocity 
+type PlayerMovementAttr = ((Float, Float), (Float, Float), Float)
 
 -- data Playground = 

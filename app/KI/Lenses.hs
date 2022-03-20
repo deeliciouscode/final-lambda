@@ -20,6 +20,7 @@ testBot = Bot {
             strength = 3,
             awareness = 5,
             reach = 6,
+            homebase = (9,17),
             position = (8,18),
             direction = (9,19),
             velocity = 4,
@@ -39,7 +40,7 @@ testState :: KIState
 testState = State {
     substrate = testPlayground,
     bots = [testBot, testBot, testBot, testBot, testBot],
-    players = [testPlayer, testPlayer, testPlayer, testPlayer, testPlayer]
+    players = [testPlayer, testPlayer, testPlayer]
 }
 
 staminaL :: Lens' Entity Int
@@ -63,6 +64,16 @@ awarenessL = lens awareness (\bot newAwareness -> bot { awareness = newAwareness
 reachL :: Lens' Entity Int
 reachL = lens reach (\bot newReach -> bot { reach = newReach })
 
+--------------- Homebase ---------------
+homebaseL :: Lens' Entity (Float, Float)
+homebaseL = lens homebase (\entity newHomebase -> entity { homebase = newHomebase })
+
+homebaseXL :: Lens' (Float, Float) Float
+homebaseXL = lens fst (\(_, y) x -> (x,y))
+
+homebaseYL :: Lens' (Float, Float) Float
+homebaseYL = lens snd (\(x, _) y -> (x,y))
+
 --------------- Position ---------------
 positionL :: Lens' Entity (Float, Float)
 positionL = lens position (\entity newPosition -> entity { position = newPosition })
@@ -85,38 +96,53 @@ directionYL = lens snd (\(x, _) y -> (x,y))
 
 --------------- Movement ---------------
 movementL :: Lens' Entity MovementAttr
-movementL = lens movementAttrs (\entity newMovementAttrs -> entity { position = fstOf4 newMovementAttrs,
-                                                                    direction = sndOf4 newMovementAttrs,
-                                                                    velocity = trdOf4 newMovementAttrs,
-                                                                    perimeter = frtOf4 newMovementAttrs })
+movementL = lens movementAttrs (\entity newMovementAttrs -> entity { position = fstOf5 newMovementAttrs,
+                                                                    direction = sndOf5 newMovementAttrs,
+                                                                    homebase = trdOf5 newMovementAttrs,
+                                                                    velocity = frtOf5 newMovementAttrs,
+                                                                    perimeter = fftOf5 newMovementAttrs })
     where
         movementAttrs :: Entity -> MovementAttr
-        movementAttrs entity = (position entity, direction entity, velocity entity, perimeter entity)
+        movementAttrs entity = (position entity, direction entity, homebase entity, velocity entity, perimeter entity)
 
 movementPositionL :: Lens' MovementAttr (Float, Float)
-movementPositionL = lens position' (\(_, dir, v, p) newPosition -> (newPosition, dir, v, p))
+movementPositionL = lens position' (\(_, dir, hb, v, p) newPosition -> (newPosition, dir, hb, v, p))
     where 
         position' :: MovementAttr -> (Float, Float)
-        position' (pos, _, _, _) = pos
+        position' (pos, _, _, _, _) = pos
 
 movementDirectionL :: Lens' MovementAttr (Float, Float)
-movementDirectionL = lens direction' (\(pos, _, v, p) newDirection -> (pos, newDirection, v, p))
+movementDirectionL = lens direction' (\(pos, _, hb, v, p) newDirection -> (pos, newDirection, hb, v, p))
     where 
         direction' :: MovementAttr -> (Float, Float)
-        direction' (_, dir, _, _) = dir
+        direction' (_, dir, _, _, _) = dir
+
+movementHomebaseL :: Lens' MovementAttr (Float, Float)
+movementHomebaseL = lens direction' (\(pos, dir, _, v, p) newHomebase -> (pos, dir, newHomebase, v, p))
+    where 
+        direction' :: MovementAttr -> (Float, Float)
+        direction' (_, dir, _, _, _) = dir
 
 movementVelocityL :: Lens' MovementAttr Float
-movementVelocityL = lens velocity' (\(pos, dir, _, p) newVelocity -> (pos, dir, newVelocity, p))
+movementVelocityL = lens velocity' (\(pos, dir, hb, _, p) newVelocity -> (pos, dir, hb, newVelocity, p))
     where 
         velocity' :: MovementAttr -> Float
-        velocity' (_, _, vel, _) = vel
+        velocity' (_, _, _, vel, _) = vel
 
 movementPerimeterL :: Lens' MovementAttr Float
-movementPerimeterL = lens perimeter' (\(pos, dir, v, _) newPerimeter -> (pos, dir, v, newPerimeter))
+movementPerimeterL = lens perimeter' (\(pos, dir, hb, v, _) newPerimeter -> (pos, dir, hb, v, newPerimeter))
     where 
         perimeter' :: MovementAttr -> Float
-        perimeter' (_, _, _, per) = per
+        perimeter' (_, _, _, _, per) = per
 
+
+playerMovementL :: Lens' Entity PlayerMovementAttr
+playerMovementL = lens movementAttrs (\entity newMovementAttrs -> entity { position = fstOf3 newMovementAttrs,
+                                                                            direction = sndOf3 newMovementAttrs,
+                                                                            velocity = trdOf3 newMovementAttrs })
+    where
+        movementAttrs :: Entity -> PlayerMovementAttr
+        movementAttrs entity = (position entity, direction entity, velocity entity)
 
 --------------- Flocking ---------------
 flockingL :: Lens' Entity Bool

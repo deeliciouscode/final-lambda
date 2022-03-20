@@ -38,22 +38,8 @@ dummyPlayers = [
         Player { 
             stamina = 0,
             strength = 0,
-            position = (100, 300),
+            position = (50, 50),
             direction = (0, 0),
-            velocity = 0
-        },
-        Player { 
-            stamina = 0,
-            strength = 0,
-            position = (500, 100),
-            direction = (0, 0),
-            velocity = 0
-        },
-        Player { 
-            stamina = 0,
-            strength = 0,
-            position = (900, 500),
-            direction = (0, 0),
-            velocity = 0
+            velocity = 5
         }
     ]
