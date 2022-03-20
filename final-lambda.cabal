@@ -49,7 +49,7 @@ executable final-lambda
         ,   hip >= 1.5
         ,   vector == 0.12.3.0
         ,   utility-ht == 0.0.16
-        ,   Cabal == 3.6.3.0
+        ,   Cabal
     other-modules:
         Dungeons.Gen 
         Dungeons.NaiveMST 

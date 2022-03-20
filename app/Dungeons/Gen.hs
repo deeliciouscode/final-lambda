@@ -216,7 +216,7 @@ separate agents = normalizeSeparation $ countNeigborsWith agents calcSeparationV
 
 calcSeparationVector :: Agent -> Agents -> Agent
 calcSeparationVector agent [] = agent
-calcSeparationVector agent@(r, (x,y), (vx,vy), n) ((r', (x',y'), (vx',vy'), _):rest)
+calcSeparationVector agent@(r, (x,y), (vx,vy), n) ((r', (x',y'), (_,_), _):rest)
                     | r == r' && x == x' && y == y' = calcSeparationVector agent rest
                     | distance (x,y) (x',y') <= neighborThreshold = calcSeparationVector (r, (x,y), (vx'',vy''), n+1) rest
                     | otherwise = calcSeparationVector agent rest

@@ -8,13 +8,17 @@ seed = 69
 sideLen :: Float
 sideLen = 500
 
+midX :: Float
 midX = sideLen / 2
+midY :: Float
 midY = sideLen / 2
 
 --------- Circle Gen --------- 
 nCircles :: Int
 nCircles = 100
+sd :: Float
 sd = sideLen / 50
+meanRadius :: Float
 meanRadius = sideLen / 50
 
 --------- Flocking --------- 

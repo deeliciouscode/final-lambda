@@ -48,7 +48,7 @@ staminaL = lens stamina (\entity newStamina -> entity { stamina = newStamina })
 styleL :: Lens' Entity String
 styleL = lens style (\bot newStyle -> bot { style = newStyle })
 
-perimeterL :: Lens' Entity Int
+perimeterL :: Lens' Entity Float
 perimeterL = lens perimeter (\bot newPerimeter -> bot { perimeter = newPerimeter })
 
 strengthL :: Lens' Entity Int
@@ -93,11 +93,29 @@ movementL = lens movementAttrs (\entity newMovementAttrs -> entity { position = 
         movementAttrs :: Entity -> MovementAttr
         movementAttrs entity = (position entity, direction entity, velocity entity, perimeter entity)
 
+movementPositionL :: Lens' MovementAttr (Float, Float)
+movementPositionL = lens position' (\(_, dir, v, p) newPosition -> (newPosition, dir, v, p))
+    where 
+        position' :: MovementAttr -> (Float, Float)
+        position' (pos, _, _, _) = pos
+
 movementDirectionL :: Lens' MovementAttr (Float, Float)
 movementDirectionL = lens direction' (\(pos, _, v, p) newDirection -> (pos, newDirection, v, p))
     where 
         direction' :: MovementAttr -> (Float, Float)
         direction' (_, dir, _, _) = dir
+
+movementVelocityL :: Lens' MovementAttr Float
+movementVelocityL = lens velocity' (\(pos, dir, _, p) newVelocity -> (pos, dir, newVelocity, p))
+    where 
+        velocity' :: MovementAttr -> Float
+        velocity' (_, _, vel, _) = vel
+
+movementPerimeterL :: Lens' MovementAttr Float
+movementPerimeterL = lens perimeter' (\(pos, dir, v, _) newPerimeter -> (pos, dir, v, newPerimeter))
+    where 
+        perimeter' :: MovementAttr -> Float
+        perimeter' (_, _, _, per) = per
 
 
 --------------- Flocking ---------------
