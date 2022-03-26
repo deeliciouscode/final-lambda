@@ -1,5 +1,6 @@
 module KI.Structures where
 
+import Data.Vector.Storable
 data Entity = Bot  { 
                   stamina :: Int, 
                   style :: String,
@@ -24,7 +25,8 @@ data Entity = Bot  {
 
 
 data KIState = State { 
-                substrate :: [[Int]],
+                dims :: (Int, Int),
+                substrate :: Vector Int,
                 bots :: [Entity],
                 players :: [Entity]
               }

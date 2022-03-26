@@ -5,12 +5,13 @@ import Control.Lens
 import Data.Maybe.HT
 import Distribution.Utils.Generic
 import Helpers
+import Data.Vector.Storable
 
 -- https://hackage.haskell.org/package/lens-tutorial-1.0.4/docs/Control-Lens-Tutorial.html#g:2
 -- https://www.youtube.com/watch?v=3kduOmZ2Wxw
 
-testPlayground :: [[Int]]
-testPlayground = replicate 10 (replicate 6 0)
+testPlayground :: Vector Int
+testPlayground = empty
 
 testBot :: Entity
 testBot = Bot {
@@ -38,6 +39,7 @@ testPlayer = Player {
 
 testState :: KIState
 testState = State {
+    dims = (0,0),
     substrate = testPlayground,
     bots = [testBot, testBot, testBot, testBot, testBot],
     players = [testPlayer, testPlayer, testPlayer]
@@ -178,34 +180,50 @@ botsL = lens bots (\state newBots -> state { bots = newBots })
 
 --------------
 
+dimsL :: Lens' KIState (Int,Int)
+dimsL = lens dims (\state newDims -> state { dims = newDims })
+
+--------------
+
 playersL :: Lens' KIState [Entity]
 playersL = lens players (\state newPlayers -> state { players = newPlayers })
 
 --------------
 
-playgroundL :: Lens' KIState [[Int]]
+playgroundL :: Lens' KIState (Vector Int)
 playgroundL = lens substrate (\state newPlayground -> state { substrate = newPlayground })
 
--- replaces a value in a 2D List, => Nothing if index does not exist
-replacePGAt :: Int -> Int -> Int -> Maybe [[Int]]
-replacePGAt c r newVal = newSubstrate
-        where
-            substate = view playgroundL testState
-            newSubstrate = case substate ^? ix c of
-                Nothing -> Nothing
-                Just column ->
-                    case column ^? ix r of
-                        Nothing -> Nothing
-                        Just row -> Just $ substate & ix c .~ (column & (ix r .~ newVal))
+-- -- replaces a value in a 2D List, => Nothing if index does not exist
+-- replacePGAt :: (Int, Int) -> Int -> [[Int]] -> [[Int]]
+-- replacePGAt (c,r) newVal substate = newSubstrate
+--     where
+--         -- substate = view playgroundL testState
+--         newSubstrate = case substate ^? ix c of
+--             Nothing -> substate
+--             Just column ->
+--                 case column ^? ix r of
+--                     Nothing -> substate
+--                     Just row -> substate & ix c .~ (column & (ix r .~ newVal))
 
--- replaces a value in a 2D List, => old list if index does not exist
-replacePGAt' :: Int -> Int -> Int -> [[Int]]
-replacePGAt' c r newVal = newSubstrate
-        where
-            substate = view playgroundL testState
-            newSubstrate = case substate ^? ix c of
-                Nothing -> substate
-                Just column ->
-                    case column ^? ix r of
-                        Nothing -> substate
-                        Just row -> substate & ix c .~ (column & (ix r .~ newVal))
+-- -- replaces a value in a 2D List, => old list if index does not exist
+-- replacePGAt' :: Int -> Int -> Int -> [[Int]]
+-- replacePGAt' c r newVal = newSubstrate
+--     where
+--         substate = view playgroundL testState
+--         newSubstrate = case substate ^? ix c of
+--             Nothing -> substate
+--             Just column ->
+--                 case column ^? ix r of
+--                     Nothing -> substate
+--                     Just row -> substate & ix c .~ (column & (ix r .~ newVal))
+
+-- replacePGAt'' :: Int -> Int -> Int -> Maybe [[Int]]
+-- replacePGAt'' c r newVal = newSubstrate
+--     where
+--         substate = view playgroundL testState
+--         newSubstrate = case substate ^? ix c of
+--             Nothing -> Nothing
+--             Just column ->
+--                 case column ^? ix r of
+--                     Nothing -> Nothing
+--                     Just row -> Just $ substate & ix c .~ (column & (ix r .~ newVal))

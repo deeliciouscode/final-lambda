@@ -55,8 +55,11 @@ normalizeWeighted w (vx,vy) = (vx', vy')
                     vx' = round' ((vx / lenV) * w) 2
                     vy' = round' ((vy / lenV) * w) 2
 
-tApp1 :: (a -> a) -> (a, a) -> (a, a)
+tApp1 :: (a -> b) -> (a, a) -> (b, b)
 tApp1 f (a,b) = (f a, f b)
+
+tApp1Arg :: (a -> a -> a) -> (a, a) -> a -> (a, a)
+tApp1Arg f (a,b) c = (f a c, f b c)
 
 tAppFst :: (a -> a) -> (a, a) -> (a, a)
 tAppFst f (a,b) = (f a, b)
@@ -72,3 +75,12 @@ tComp f thresh (x,y) (x',y') = True
 
 randomNumber :: (Random a) => Int -> a -> a -> a
 randomNumber seed min max = fst $ randomR (min,max) (mkStdGen seed)
+
+eps :: Float 
+eps = 0.00000000000001
+
+rotate90Clockwise :: (Float, Float) -> (Float, Float)
+rotate90Clockwise (x, y) = (y, x*(-1))
+
+rotate90CounterClockwise :: (Float, Float) -> (Float, Float)
+rotate90CounterClockwise (x, y) = (y*(-1), x)

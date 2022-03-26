@@ -4,7 +4,7 @@ module KI.KI where
 
 import KI.Structures
 import KI.Config
-import System.Random
+import System.Random ()
 import KI.Lenses
 import Graphics.Gloss as GLOSS
 import Graphics.Gloss.Data.ViewPort
@@ -12,19 +12,35 @@ import Graphics.Gloss.Interface.Pure.Game
 import Control.Lens
 import Helpers
 import Data.Function (on)
-import Data.List
+import Data.List as LST
+import qualified Graphics.Image.Interface as IF
+import qualified Graphics.Image as GI
+import Data.Vector.Unboxed.Base as VUB
+import Data.Vector.Storable as VS
+import Data.Geometry (vector)
+import Graphics.Image.Interface (ColorSpace(getPxC), fromIx, toIx)
+import Data.Maybe
+import Data.Tuple
+import Graphics.Gloss.Export.Image
+import Codec.Picture.Png.Internal.Export
 
-debugKI :: IO()
-debugKI = do
-    print playground
-    print $ genBots nBots [(30, 30)]
-    return ()
+makeKIState :: (Point, [Point]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
+makeKIState (playerPos, botSpawns) dims vector = State {
+                                        dims = dims,
+                                        substrate = transformToIntVec vector,
+                                        bots = genBots nBots botSpawns,
+                                        players = dummyPlayers playerPos
+                                    }
+
+transformToIntVec :: VS.Vector (GI.Pixel GI.Y Double) -> VS.Vector Int
+transformToIntVec = VS.map (\(GI.PixelY val) -> round val)
 
 initialKIState :: KIState
 initialKIState = State {
-                    substrate = playground,
-                    bots = genBots nBots [(200, 200), (300, 100), (400, 300), (500, 100), (600, 300)],
-                    players = dummyPlayers
+                    dims = (100,100),
+                    substrate = VS.imap (\x -> if (x <= 1000) || (x >= 9000) || (x `mod` 100 < 10) || (x `mod` 100 > 90) then (-)2 else id) (VS.replicate 10000 2),
+                    bots = genBots nBots [(20, 20), (30, 10), (40, 30), (50, 10), (60, 30)],
+                    players = dummyPlayers (50,50)
                 }
 
 genBots :: Int -> [(Float, Float)] -> [Entity]
@@ -48,7 +64,7 @@ genBot i centers = Bot {
         flocking = flocking'
     }
     where
-        iCenter = randomNumber (seed - i * 23247) 0 (length centers - 1) :: Int
+        iCenter = randomNumber (seed - i * 23247) 0 (LST.length centers - 1) :: Int
         (cx, cy) = centers !! iCenter
 
         stamina' = randomNumber (seed - i) 20 100 :: Int
@@ -58,30 +74,31 @@ genBot i centers = Bot {
           | encodedStyle == 1 = "devensive"
           | otherwise = "balanced" :: String
 
-        perimeter' = randomNumber (seed - i*3) 100 150 :: Float
+        perimeter' = randomNumber (seed - i*3) 30 50 :: Float
         -- perimeter' = 100 :: Float
 
         strength' = randomNumber (seed - i*4) 3 10 :: Int
         awareness' = randomNumber (seed - i*6) 3 10 :: Int
         reach' = randomNumber (seed - i*7) 5 50 :: Int
 
-        position'XDelta = randomNumber (seed - i*8393) (-50) 50
-        position'YDelta = randomNumber (seed - i*82933) (-50) 50
+        position'XDelta = randomNumber (seed - i*8393) (-30) 30
+        position'YDelta = randomNumber (seed - i*82933) (-30) 30
         position' = (cx + position'XDelta, cy + position'YDelta) :: (Float, Float)
         homebase' = position'
 
         direction' = normalize' (randomNumber (seed - i*1120) (-1) 1, randomNumber (seed - i*11370) (-1) 1) :: (Float, Float)
-        velocity' = randomNumber (seed - i*5) 20 40 :: Float
+        velocity' = randomNumber (seed - i*5) 10 20 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool
 
 ------------------------------- Simulation -------------------------------    
 
 simulateKI :: IO ()
-simulateKI = simulate window background fps initialKIState render update
+simulateKI = simulate window background fps initialKIState (render undefined) update
 
-playWithKI :: IO ()
-playWithKI = play window background fps initialKIState render handleKeys moveAgents
+playWithKI :: (Point, [Point]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO ()
+-- playWithKI (img, dims, flatImage) = play window background fps (makeKIState dims flatImage) render handleKeys moveAgents
+playWithKI meta (dims, vector) dungeon = play window background fps (makeKIState meta dims vector) (render dungeon) handleKeys moveAgents
 
 -- maps = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `flip`) pos . (tApp2 (/) `flip`) (fromIntegral n,fromIntegral n)) mvmnt
 
@@ -96,13 +113,29 @@ handleKeys (EventKey (SpecialKey KeyRight) Down _ _) state = over (playersL . tr
 handleKeys (EventKey (SpecialKey KeyRight) Up _ _) state = over (playersL . traverse . directionL) (normalizeWeighted 1 . tAppFst  (*0)) state
 handleKeys _ state = state
 
-render :: KIState -> Picture
-render state = picture
+render :: Picture -> KIState -> Picture
+render dungeon state = picture
     where
         bots' = bots state
         players' = players state
-        picture = pictures $ entitiesToPictures black 5 bots' ++ entitiesToPictures red 10 players'
+        playerMe = LST.head players'
+        picture = pictures $ viewDungeon playerMe dungeon : botsToPictures green 5 bots' LST.++ entitiesToPictures red 10 players'
 
+viewDungeon :: Entity -> Picture -> Picture
+viewDungeon player dungeon = translate 0 0 $ scale mapScale mapScale dungeon
+
+botsToPictures :: Color -> Float -> [Entity] -> [Picture]
+botsToPictures _ _ [] = []
+botsToPictures _color size (x:xs) = botPicture : botsToPictures _color size xs
+    where
+        pos = position x
+        dir = direction x
+        p = perimeter x
+        drawX = fst pos - fst midPlayground
+        drawY = snd pos - snd midPlayground
+        drawPos = (drawX, drawY)
+        botPicture = pictures [GLOSS.translate drawX drawY $ color _color $ circleSolid size, color blue $ line [drawPos, tApp2 (+) drawPos $ tApp1 (*p) dir]]
+        -- botPicture = GLOSS.translate drawX drawY $ color _color $ circleSolid size -- without the direction lines
 
 entitiesToPictures :: Color -> Float -> [Entity] -> [Picture]
 entitiesToPictures _ _ [] = []
@@ -122,8 +155,8 @@ moveAgents seconds state = newState'
     where
         bots = view botsL state
         players = view playersL state
-        newState = over (playersL . traverse . playerMovementL) (movePlayers seconds) state 
-        newBots = over (botsL . traverse . movementL) (moveAgent seconds bots players) newState
+        newState = over (playersL . traverse . playerMovementL) (movePlayers seconds) state
+        newBots = over (botsL . traverse . movementL) (moveAgent newState seconds bots players) newState
         newState' = newBots
 
 movePlayers :: Float -> PlayerMovementAttr -> PlayerMovementAttr
@@ -131,10 +164,10 @@ movePlayers seconds ((x,y),(dirX,dirY),v) = ((x+dirX',y+dirY'),(dirX',dirY'),v)
     where
         (dirX',dirY') = normalizeWeighted v (dirX,dirY)
 
-moveAgent :: Float -> [Entity] -> [Entity] -> MovementAttr -> MovementAttr
-moveAgent seconds bots players movementAttrs = newMovementAttrs'
+moveAgent :: KIState -> Float -> [Entity] -> [Entity] -> MovementAttr -> MovementAttr
+moveAgent state seconds bots players movementAttrs = newMovementAttrs'
     where
-        newMovementAttrs = calcNewMovementAttrs seconds bots players $ countNeighbors movementAttrs bots -- 0 is initial no of neighbors
+        newMovementAttrs = calcNewMovementAttrs state seconds bots players $ countNeighbors movementAttrs bots -- 0 is initial no of neighbors
         newMovementAttrs' = updatePosition seconds movementAttrs newMovementAttrs
 
 updatePosition :: Float -> MovementAttr -> MovementAttr -> MovementAttr
@@ -146,15 +179,15 @@ updatePosition seconds ((x,y), dir, hb, v, p) (pos, (dirX',dirY'), _, _, _) = ((
 countNeighbors :: MovementAttr -> [Entity] -> (MovementAttr, Int, [Int])
 countNeighbors mvnt@((x,y), (x',y'), hb, v, p) bots = (mvnt, count, indezes)
     where
-        positions = map (view positionL) bots
-        indezes = map fst (findItems ((>=) p . distance (x, y)) positions)
-        count = length indezes
+        positions = LST.map (view positionL) bots
+        indezes = LST.map fst (findItems ((>=) p . distance (x, y)) positions)
+        count = LST.length indezes
 
 -- first: pretend all have flocking behaviour
-calcNewMovementAttrs :: Float -> [Entity] -> [Entity] -> (MovementAttr, Int, [Int]) -> MovementAttr
-calcNewMovementAttrs seconds bots players (movementAttrs, n, ixs) = newMovementAttrs
+calcNewMovementAttrs :: KIState -> Float -> [Entity] -> [Entity] -> (MovementAttr, Int, [Int]) -> MovementAttr
+calcNewMovementAttrs state seconds bots players (movementAttrs, n, ixs) = newMovementAttrs
     where
-        relevantBots = map (fst . snd) (findItems (flip elem ixs . snd) (zip bots [0..]))
+        relevantBots = LST.map (fst . snd) (findItems (flip LST.elem ixs . snd) (zip bots [0..]))
 
         -- playersPos = toListOf (traverse . positionL) players
         -- closePlayers = filter (tComp (<=)
@@ -162,18 +195,46 @@ calcNewMovementAttrs seconds bots players (movementAttrs, n, ixs) = newMovementA
         --                             (view movementPositionL movementAttrs)
         --                             . view positionL) players
 
-        nearestPlayerI = fst (minimumBy (compare `on` snd) (zip [0..] (map (distance (view movementPositionL movementAttrs) . view positionL) players)))
+        nearestPlayerI = fst (LST.minimumBy (compare `on` snd) (zip [0..] (LST.map (distance (view movementPositionL movementAttrs) . view positionL) players)))
         nearestPlayer = players !! nearestPlayerI
-        inPerimeter = view movementPerimeterL movementAttrs <= distance (view positionL nearestPlayer) (view movementPositionL movementAttrs)
+        inPerimeter = view movementPerimeterL movementAttrs >= distance (view positionL nearestPlayer) (view movementPositionL movementAttrs)
+        inReach = 20 >= distance (view positionL nearestPlayer) (view movementPositionL movementAttrs)
+        wallDistance = calcWallDistance state movementAttrs
 
-        alignment = normalizeA n $ foldr addToMovementsAttrsAlignment movementAttrs relevantBots
-        cohesion = normalizeC n $ foldr addToMovementsAttrsCohesion movementAttrs relevantBots
-        separation = normalizeS n $ foldr addToMovementsAttrsSeparation movementAttrs relevantBots
+        (pos, _, hb, v, p) = movementAttrs
+
+        alignment = normalizeA n $ LST.foldr addToMovementsAttrsAlignment movementAttrs relevantBots
+        cohesion = normalizeC n $ LST.foldr addToMovementsAttrsCohesion movementAttrs relevantBots
+        separation = normalizeS n $ LST.foldr addToMovementsAttrsSeparation movementAttrs relevantBots
         homebaseAwareness = normalizeH $ addToMovementsAttrsHomebaseAwareness movementAttrs
+        wallAwareness = normalizeW wallDistance $ addToMovementsAttrsWallAwareness movementAttrs
         playerAwareness = normalizeP $ addToMovementsAttrsPlayerAwareness movementAttrs nearestPlayer
         newMovementAttrs
-            | inPerimeter = normalizeF $ foldr combineSteering movementAttrs [alignment, cohesion, separation, homebaseAwareness]
-            | otherwise = normalizeF $ combineSteering movementAttrs playerAwareness
+            | inReach = (pos, (0,0), hb, v, p)
+            | inPerimeter = normalizeF $ LST.foldr combineSteering movementAttrs [playerAwareness, wallAwareness]
+            | otherwise = normalizeF $ LST.foldr combineSteering movementAttrs [alignment, cohesion, separation, homebaseAwareness, wallAwareness]
+
+calcWallDistance :: KIState -> MovementAttr -> Float
+calcWallDistance state mvmnt = wallDistance
+    where
+        vector = view playgroundL state
+        perimeter = view movementPerimeterL mvmnt
+        cols = fst (view dimsL state)
+        (posX, posY) = view movementPositionL mvmnt -- 900,900
+        c = fromIntegral (fst (view dimsL state)) / 2
+        dx = posX - c -- 400
+        dy = posY - c -- 400
+        pos = (c - dy, c + dx) -- (900, 100)
+        -- pos = (posX, 999-posY)
+        dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
+
+        pos's = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' dir))) [1..perimeter]
+
+        pixelValues = LST.map ((!) vector . fromIx cols) pos's
+
+        wallDistance = case LST.findIndex (1 /=) pixelValues of
+            Nothing -> let infinity = read "Infinity"::Float in infinity
+            Just i -> let pos' = pos's !! i in distance pos $ tApp1 fromIntegral pos'
 
 addToMovementsAttrsAlignment :: Entity -> MovementAttr -> MovementAttr
 addToMovementsAttrsAlignment bot ((x,y), (dirX,dirY), hb, v, p) = mvmnt'
@@ -204,6 +265,9 @@ addToMovementsAttrsHomebaseAwareness ((x,y), (dirX,dirY), hb@(hbX,hbY), v, p) = 
     where
         mvmnt' = ((x,y), (dirX+hbX,dirY+hbY), hb, v, p)
 
+addToMovementsAttrsWallAwareness :: MovementAttr -> MovementAttr
+addToMovementsAttrsWallAwareness (pos, (dirX,dirY), hb, v, p) = (pos, (-dirX,-dirY), hb, v, p)
+
 normalizeA :: Int -> MovementAttr -> MovementAttr
 normalizeA n = over movementDirectionL $ normalizeWeighted 2
 
@@ -227,7 +291,12 @@ normalizeH mvmnt = over movementDirectionL (normalizeWeighted weight . (tApp2 (-
     where
         pos = view movementPositionL mvmnt
         hb = view movementHomebaseL mvmnt
-        weight = distance pos hb / 500
+        weight = distance pos hb / 1000
+
+normalizeW :: Float -> MovementAttr -> MovementAttr
+normalizeW wallDist = over movementDirectionL (normalizeWeighted weight)
+    where
+        weight = if wallDist == (read "Infinity"::Float) then 0 else 200 / (wallDist+eps)**2
 
 normalizeF :: MovementAttr -> MovementAttr
 normalizeF = over movementDirectionL normalize'

@@ -2,11 +2,11 @@ module Dungeons.Config where
 
 --------- Randomness --------- 
 seed :: Int
-seed = 69
+seed = 420
 
 --------- Image --------- 
 sideLen :: Float
-sideLen = 500
+sideLen = 1000
 
 midX :: Float
 midX = sideLen / 2

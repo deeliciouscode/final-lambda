@@ -149,6 +149,7 @@ normalizeAgent multiplier (r, (x,y), (vx,vy), n) = (r, (x,y), (vx'', vy''), n)
 moveAgent :: Agent -> Agent
 moveAgent (r, (x,y), (vx,vy), n) = (r, (x+vx,y+vy), (vx,vy), n)
 
+
 ------------------------------- Flocking.Neigbors -------------------------------    
 
 countNeigborsWith :: Agents -> FlockingFunction -> Agents
@@ -290,10 +291,36 @@ makeMST = euclideanMST
 
 -- Tutorial: https://andrew.gibiansky.com/blog/haskell/haskell-gloss/
 
-saveGloss :: IO ()
-saveGloss = exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
+saveGloss :: IO ((Float,Float), [(Float,Float)])
+saveGloss = do
+    exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
+    let metaInfo = (entry, botSpawns)
+    return metaInfo
 
+saveGlossDebug :: IO ((Float,Float), [(Float,Float)])
+saveGlossDebug = do
+    exportPictureToFormat writePng (round sideLen, round sideLen) black "images/calibration.png" objectsCalibration'
+    let metaInfo = (entry, botSpawns)
+    return metaInfo
+
+objectsCalibration :: Picture 
+objectsCalibration = pictures [color white $ circleSolid 100, 
+                                GLOSS.translate (-midX+100) (-midY+100) $ color red $ circleSolid 100,
+                                GLOSS.translate (-midX+100) (-midY+900) $ color green $ circleSolid 100,
+                                GLOSS.translate (-midX+900) (-midY+900) $ color blue $ circleSolid 100]
+
+
+objectsCalibration' :: Picture 
+objectsCalibration' = GLOSS.translate (-midX+900) (-midY+900) $ color white $ circleSolid 100
+
+picture :: Picture
 picture = pictures $ scale sideLen sideLen blank : [objects]
+
+entry :: (Float, Float)
+entry = snd $ last circles'''
+
+botSpawns :: [(Float, Float)]
+botSpawns = LIST.map snd $ LIST.take 20 circles'''
 
 objects :: Picture
 objects = combinePictures circles'''
