@@ -79,33 +79,36 @@ server   = do
     -- sendet nextMessage aus Channel an alle Clients
     ----------------------------------------------------------
     forkIO $ forever $ do
-        nextMessage <- readChan messageQueue
-        
-        map_playerList <- takeMVar playerList
-        case nextMessage of 
-            Message [Source (Client id)] (PositionUpdate (x,y)) -> do
 
-                let updatedPlayerInfo = case M.lookup id map_playerList of 
-                            Just pI -> pI {pI_position = (x,y)}
-                            _ -> PI (-1) (-1,-1) (x,y)
-                putMVar playerList $ M.insert id updatedPlayerInfo map_playerList  
+        Message l p <- readChan messageQueue
+        case l of 
+            [ConnectionWrapper conn] -> do
+                sendAll conn $ toByteString $ Message [Source Server] p
+                sendAll conn $ toByteString $ Message [Source Server] (PlayerInformation [])  -- ToDo       
+           
+            _ -> do
+                map_playerList <- takeMVar  playerList
+                list_connection <- readMVar connectionList
 
-            Message [Source (Client id)] (EnterMap mapID) -> do
+                case l of
+                    [Source (Client id)] -> do
+                        let player = case M.lookup id map_playerList of 
+                                Just pI -> pI 
+                                _ -> PI (-1) (-1,-1) (0,0)
 
-                let updatedPlayerInfo = case M.lookup id map_playerList of 
-                            Just pI -> pI {pI_mapID = mapID}
-                            _ -> PI mapID (-1,-1) (0,0)
-                putMVar playerList $ M.insert id updatedPlayerInfo map_playerList  
-            
-            Message [Source (Client id)] GetMyInfo -> do
-                -- ... ToDo
-                putMVar playerList map_playerList
-
-            _ -> putMVar playerList map_playerList
+                        case p of 
+                            PositionUpdate (x,y) -> 
+                                putMVar playerList $ M.insert id (player {pI_position = (x,y)}) map_playerList
+                            EnterMap mapID -> 
+                                putMVar playerList $ M.insert id (player {pI_mapID = mapID}) map_playerList
+                            _ -> putMVar playerList map_playerList
+                    _ -> putMVar playerList map_playerList
 
 
-        
-        readMVar connectionList >>= mapM_ (`sendAll` toByteString nextMessage)
+                readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message l p))
+                
+
+       
    
 
     ----------------------------------------------------------
@@ -151,8 +154,9 @@ runTCPServer host port mV messageQueue = withSocketsDo $ do
                             connections <- readMVar mV
                             swapMVar mV $ connections ++ [conn]
 
-                            sendAll conn $ toByteString $ Message [Source Server] $ SetID id
-
+                            --sendAll conn $ toByteString $ Message [Source Server] $ SetID id
+                            -- work in progress: 
+                            writeChan messageQueue $ Message [ConnectionWrapper conn] $ SetID id
                             forkFinally (forever $ do
                                 msg <- recv conn 1024
                                 unless (BS.null msg) $ writeChan messageQueue $ fromByteString msg
@@ -197,11 +201,14 @@ runTCPClient host port client = withSocketsDo $ do
 
 
 
-
+instance Binary Socket where
+    put = error "wrong wrapper use" 
+    get = error "wrong wrapper use" 
 
 data Destionation = 
         Target SubDestination    
-    |   Source SubDestination        
+    |   Source SubDestination   
+    |   ConnectionWrapper Socket     
     deriving stock Generic 
     deriving anyclass Binary
     deriving Show

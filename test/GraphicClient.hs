@@ -195,7 +195,7 @@ onUpdate delta _gameState =
                               
                                     return gs {list_OtherPlayer = M.insert i updatedPlayer $ list_OtherPlayer gs}
                                     
-                                Message [Source Server] PlayerInformation [] -> do
+                                Message [Source Server] (PlayerInformation []) -> do
                                     -- ... ToDo
                                     return gs
                                 _ -> return gs
@@ -206,7 +206,7 @@ onUpdate delta _gameState =
 
 
 
-
+        {--
         --depricated -> zukünftig ersetzten mit: _handleServerMessages
         handleServerMessages :: GameState -> IO GameState
         handleServerMessages gs = do
@@ -248,7 +248,7 @@ onUpdate delta _gameState =
                 _ -> do
                     unless (isNothing mServerMessage) $ print mServerMessage
                     return gs
-
+        --}
         procedureInput :: GameState -> IO GameState
         procedureInput gs = do
 
@@ -268,7 +268,7 @@ onUpdate delta _gameState =
 
     in  (       sendPosition
         >=>     handleActivePing
-        >=>     handleServerMessages
+        >=>     _handleServerMessages
         >=>     procedureInput
         ) _gameState
 
