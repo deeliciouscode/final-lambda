@@ -24,7 +24,7 @@ import Data.Tuple
 import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
 
-makeKIState :: (Point, [Point]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
+makeKIState :: (Point, [(Float, (Float,Float))]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
 makeKIState (playerPos, botSpawns) dims vector = State {
                                         dims = dims,
                                         substrate = transformToIntVec vector,
@@ -35,22 +35,22 @@ makeKIState (playerPos, botSpawns) dims vector = State {
 transformToIntVec :: VS.Vector (GI.Pixel GI.Y Double) -> VS.Vector Int
 transformToIntVec = VS.map (\(GI.PixelY val) -> round val)
 
-initialKIState :: KIState
-initialKIState = State {
-                    dims = (100,100),
-                    substrate = VS.imap (\x -> if (x <= 1000) || (x >= 9000) || (x `mod` 100 < 10) || (x `mod` 100 > 90) then (-)2 else id) (VS.replicate 10000 2),
-                    bots = genBots nBots [(20, 20), (30, 10), (40, 30), (50, 10), (60, 30)],
-                    players = dummyPlayers (50,50)
-                }
+-- initialKIState :: KIState
+-- initialKIState = State {
+--                     dims = (100,100),
+--                     substrate = VS.imap (\x -> if (x <= 1000) || (x >= 9000) || (x `mod` 100 < 10) || (x `mod` 100 > 90) then (-)2 else id) (VS.replicate 10000 2),
+--                     bots = genBots nBots [(20, 20), (30, 10), (40, 30), (50, 10), (60, 30)],
+--                     players = dummyPlayers (50,50)
+--                 }
 
-genBots :: Int -> [(Float, Float)] -> [Entity]
+genBots :: Int -> [(Float, (Float,Float))] -> [Entity]
 -- genBots = take nBots $ repeat $ genBot $ mkStdGen seed 
 genBots _ [] = []
 genBots 0 _ = []
-genBots n centers = genBot n centers : genBots (n-1) centers
+genBots n circles = genBot n circles : genBots (n-1) circles
 
-genBot :: Int -> [(Float, Float)] -> Entity
-genBot i centers = Bot {
+genBot :: Int -> [(Float, (Float,Float))] -> Entity
+genBot i circles = Bot {
         stamina = stamina',
         style = style',
         perimeter = perimeter',
@@ -64,8 +64,12 @@ genBot i centers = Bot {
         flocking = flocking'
     }
     where
+        centers = LST.map snd circles
+        radii = LST.map fst circles
         iCenter = randomNumber (seed - i * 23247) 0 (LST.length centers - 1) :: Int
         (cx, cy) = centers !! iCenter
+        spread = (radii !! iCenter) / 2
+        -- spread = 1
 
         stamina' = randomNumber (seed - i) 20 100 :: Int
         encodedStyle = randomNumber (seed - i*2) 0 2 :: Int
@@ -74,15 +78,16 @@ genBot i centers = Bot {
           | encodedStyle == 1 = "devensive"
           | otherwise = "balanced" :: String
 
-        perimeter' = randomNumber (seed - i*3) 30 50 :: Float
+        perimeter' = randomNumber (seed - i*3) 50 80 :: Float
         -- perimeter' = 100 :: Float
 
         strength' = randomNumber (seed - i*4) 3 10 :: Int
         awareness' = randomNumber (seed - i*6) 3 10 :: Int
-        reach' = randomNumber (seed - i*7) 5 50 :: Int
+        -- reach' = randomNumber (seed - i*7) 5 10 :: Int
+        reach' = 10 :: Int
 
-        position'XDelta = randomNumber (seed - i*8393) (-30) 30
-        position'YDelta = randomNumber (seed - i*82933) (-30) 30
+        position'XDelta = randomNumber (seed - i*8393) (-spread) spread
+        position'YDelta = randomNumber (seed - i*82933) (-spread) spread
         position' = (cx + position'XDelta, cy + position'YDelta) :: (Float, Float)
         homebase' = position'
 
@@ -93,10 +98,10 @@ genBot i centers = Bot {
 
 ------------------------------- Simulation -------------------------------    
 
-simulateKI :: IO ()
-simulateKI = simulate window background fps initialKIState (render undefined) update
+-- simulateKI :: IO ()
+-- simulateKI = simulate window background fps initialKIState (render undefined) update
 
-playWithKI :: (Point, [Point]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO ()
+playWithKI :: (Point, [(Float, (Float,Float))]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO ()
 -- playWithKI (img, dims, flatImage) = play window background fps (makeKIState dims flatImage) render handleKeys moveAgents
 playWithKI meta (dims, vector) dungeon = play window background fps (makeKIState meta dims vector) (render dungeon) handleKeys moveAgents
 
@@ -291,7 +296,7 @@ normalizeH mvmnt = over movementDirectionL (normalizeWeighted weight . (tApp2 (-
     where
         pos = view movementPositionL mvmnt
         hb = view movementHomebaseL mvmnt
-        weight = distance pos hb / 1000
+        weight = distance pos hb / 200
 
 normalizeW :: Float -> MovementAttr -> MovementAttr
 normalizeW wallDist = over movementDirectionL (normalizeWeighted weight)

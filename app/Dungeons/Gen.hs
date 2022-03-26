@@ -291,16 +291,16 @@ makeMST = euclideanMST
 
 -- Tutorial: https://andrew.gibiansky.com/blog/haskell/haskell-gloss/
 
-saveGloss :: IO ((Float,Float), [(Float,Float)])
+saveGloss :: IO ((Float,Float), Circles)
 saveGloss = do
     exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
-    let metaInfo = (entry, botSpawns)
+    let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
     return metaInfo
 
-saveGlossDebug :: IO ((Float,Float), [(Float,Float)])
+saveGlossDebug :: IO ((Float,Float), Circles)
 saveGlossDebug = do
     exportPictureToFormat writePng (round sideLen, round sideLen) black "images/calibration.png" objectsCalibration'
-    let metaInfo = (entry, botSpawns)
+    let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
     return metaInfo
 
 objectsCalibration :: Picture 
@@ -315,12 +315,6 @@ objectsCalibration' = GLOSS.translate (-midX+900) (-midY+900) $ color white $ ci
 
 picture :: Picture
 picture = pictures $ scale sideLen sideLen blank : [objects]
-
-entry :: (Float, Float)
-entry = snd $ last circles'''
-
-botSpawns :: [(Float, Float)]
-botSpawns = LIST.map snd $ LIST.take 20 circles'''
 
 objects :: Picture
 objects = combinePictures circles'''
