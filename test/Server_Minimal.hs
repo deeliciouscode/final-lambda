@@ -67,6 +67,10 @@ data PlayerInfo = PI {
     pI_health :: (Float, Float), -- (-1,-1) als not set
     pI_position :: (Float, Float)
 }
+    deriving stock Generic 
+    deriving anyclass Binary
+    deriving Show
+    deriving Eq
 
 server   = do
     --connectionList <- newEmptyMVar :: IO (MVar [Socket]) 
@@ -81,31 +85,35 @@ server   = do
     forkIO $ forever $ do
 
         Message l p <- readChan messageQueue
+        map_playerList <- readMVar  playerList
+        list_connection <- readMVar connectionList
+        print p
         case l of 
-            [ConnectionWrapper conn] -> do
-                sendAll conn $ toByteString $ Message [Source Server] p
-                sendAll conn $ toByteString $ Message [Source Server] (PlayerInformation [])  -- ToDo       
-           
-            _ -> do
-                map_playerList <- takeMVar  playerList
-                list_connection <- readMVar connectionList
+            [ConnectionWrapper conn] -> sendAll conn $ toByteString $ Message [Source Server] p  
 
-                case l of
-                    [Source (Client id)] -> do
-                        let player = case M.lookup id map_playerList of 
+            [Source (Client id), Target (Map i)] -> do
+                let player = case M.lookup id map_playerList of 
+                                Just pI -> pI 
+                                _ -> PI (-1) (-1,-1) (0,0)
+                    newPlayerList = M.insert id (player {pI_mapID = i}) map_playerList
+                swapMVar playerList newPlayerList
+                readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (PlayerInformation newPlayerList)))
+
+            [Source (Client id)] -> do
+                let player = case M.lookup id map_playerList of 
                                 Just pI -> pI 
                                 _ -> PI (-1) (-1,-1) (0,0)
 
-                        case p of 
-                            PositionUpdate (x,y) -> 
-                                putMVar playerList $ M.insert id (player {pI_position = (x,y)}) map_playerList
-                            EnterMap mapID -> 
-                                putMVar playerList $ M.insert id (player {pI_mapID = mapID}) map_playerList
-                            _ -> putMVar playerList map_playerList
-                    _ -> putMVar playerList map_playerList
+                case p of 
+                    PositionUpdate (x,y)    -> void $ swapMVar playerList $ M.insert id (player {pI_position = (x,y)}) map_playerList        
+                    _                       -> putMVar playerList map_playerList
 
 
                 readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message l p))
+            
+            notImplementedMessage -> do
+                --putMVar playerList map_playerList
+                print $ "Message: " ++ show notImplementedMessage ++  "not yet supportet"
                 
 
        
@@ -208,7 +216,7 @@ instance Binary Socket where
 data Destionation = 
         Target SubDestination    
     |   Source SubDestination   
-    |   ConnectionWrapper Socket     
+    |   ConnectionWrapper Socket   
     deriving stock Generic 
     deriving anyclass Binary
     deriving Show
@@ -217,6 +225,7 @@ data SubDestination =
         Client Int 
     |   Server
     |   Broadcast
+    |   Map Int
     deriving stock Generic 
     deriving anyclass Binary
     deriving Show
@@ -236,17 +245,18 @@ data Payload =
                                                                     -- wenn negativ: damage
                 |   EffectGained Int                                -- Effect ID
                 |   EffectWanished Int                              -- Effect ID
-                |   M String
-                |   EnterMap Int                                    -- Map ID + player update?                               -- 
-                |   PlayerInformation [PlayerRepresentation]
+                |   M String                                   -- Map ID + player update?                               -- 
+                |   PlayerInformation (Map Int PlayerInfo)
                 |   GetMyInfo                                       -- Ruft stored PlayerInfo aus DataBase ab
                                                                     -- ebenfalls trigger für PlayerInformation
+                |   Null
     deriving stock Generic 
     deriving anyclass Binary
     deriving Show
     deriving Eq
 
 
+--depricated:------------------------------------------
 data PlayerRepresentation = PR {
     pRclientID :: Int,
     pRmapID :: Int,
@@ -257,6 +267,8 @@ data PlayerRepresentation = PR {
     deriving anyclass Binary
     deriving Show
     deriving Eq
+-------------------------------------------------------
+
 
 fromByteString :: ByteString -> Message
 fromByteString bS = decode $ fromStrict bS

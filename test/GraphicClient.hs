@@ -32,17 +32,16 @@ data GameState = GS {
     clientMessages :: TChan Message,
     clientID :: Maybe Int,
     alivePingTime :: Float,
-    list_OtherPlayer :: Map Int OtherPlayer,
+    list_OtherPlayer :: Map Int PlayerInfo,
     list_key :: Set Char,
     position :: (Float, Float),
-    list_Tile :: Map String Picture
-    }
+    list_Tile :: Map String Picture,
+    mapID :: Int
 
-data OtherPlayer = OP {
-    x :: Maybe Float,
-    y :: Maybe Float,
-    health :: (Float, Float)
-    } deriving (Show)
+    } 
+
+
+
 
 
 main :: IO ()
@@ -62,10 +61,11 @@ main = do
             clientMessages
             Nothing
             0
-            (M.empty :: Map Int OtherPlayer)
+            (M.empty :: Map Int PlayerInfo)
             (S.empty :: Set Char)
             (0,0)
             (M.fromList [("player", playerTile), ("op", other_Player_Tile)])
+            (-1)
 
     forkIO $ runTCPClient "127.0.0.1" "3000" $ \socket -> do
         void $ forkIO $ forever $ do
@@ -97,43 +97,43 @@ main = do
 
 render :: GameState -> IO Picture
 render gs = do
-    -- ToDo: code hier ist sehr!!!!!!!!!! hacki
-    let playerTile = M.lookup "player" $ list_Tile gs
+   
+    let debugText = (show $ mapID gs) ++ (show $ position gs)
+        foo = show $ M.toList $ list_OtherPlayer gs
 
-        otherTile = M.lookup "op" $ list_Tile gs
-
-
-        l_op = M.elems $ list_OtherPlayer gs
-
-
-
-        t = Prelude.map (\op -> translate 0 0 $ (\(Just p)  -> p)  otherTile) l_op
-        tt =  Prelude.map (\op -> let
-                                        foo = (x op, y op)
-                                        test (Just x, Just y) = translate x y $ (\(Just p)  -> p)  otherTile
-                                        test _ = translate 50 50  $ (\(Just p)  -> p)  otherTile
-
-                                        (min, max) = health op
-                                        {-
-                                        max = 100
-                                        1 = 100/max
-                                        
-                                        
-                                        -}
-
-                                        healthBar (Just x, Just y) =  translate (x - 16) (y + 20)  (lineLoop [(0,0),(32/max * min,0)])
-                                        healthBar _ = Blank
-
-                                            in [test foo, healthBar foo]) l_op
-
-
-        trans_player = uncurry translate (position gs) $ (\(Just p) -> p) playerTile
-    --mapM_ print l_op
-    --print $ length l_tile
-    return $ pictures $ trans_player : concat tt --l_tile
+    return $ translate (-100) 0 $ scale 0.1 0.1 $ Text foo
+    --return $ pictures $ trans_player : concat tt --l_tile
 
 
 handleInput :: Event -> GameState -> IO GameState
+handleInput ev@(EventKey (Char '+') Down Modifiers {shift = _shift, ctrl = _ctrl, alt = _alt} (xC, yC)) gameState= do
+    let cID = clientID gameState
+
+    if isNothing cID 
+        then return gameState
+        else do
+            let playerID = (\(Just id) -> id) $ clientID gameState
+                player = (\(Just id) -> id) $ M.lookup playerID $ list_OtherPlayer gameState
+                mapID = pI_mapID player
+                --newPlayerList = M.insert playerID (player {pI_mapID = mapID + 1}) $ list_OtherPlayer gameState
+            atomically $ writeTChan (clientMessages gameState) $ Message [Source $ Client playerID, Target (Map (mapID + 1))] Null
+
+            return gameState --{list_OtherPlayer = newPlayerList}
+
+handleInput ev@(EventKey (Char '-') Down Modifiers {shift = _shift, ctrl = _ctrl, alt = _alt} (xC, yC)) gameState= do
+    let cID = clientID gameState
+
+    if isNothing cID 
+        then return gameState
+        else do
+            let playerID = (\(Just id) -> id) $ clientID gameState
+                player = (\(Just id) -> id) $ M.lookup playerID $ list_OtherPlayer gameState
+                mapID = pI_mapID player
+                --newPlayerList = M.insert playerID (player {pI_mapID = mapID + 1}) $ list_OtherPlayer gameState
+            atomically $ writeTChan (clientMessages gameState) $ Message [Source $ Client playerID, Target (Map (mapID - 1))] Null
+
+            return gameState --{list_OtherPlayer = newPlayerList}
+
 handleInput ev@(EventKey (Char c) Down Modifiers {shift = _shift, ctrl = _ctrl, alt = _alt} (xC, yC)) gameState= do
     --print ev
     return $ gameState {list_key = S.insert c $ list_key gameState}
@@ -169,8 +169,8 @@ onUpdate delta _gameState =
                 return $ gs {alivePingTime = 0} --}
             | otherwise = return $ gs {alivePingTime = alivePingTime gs + delta} :: IO GameState
 
-        _handleServerMessages :: GameState -> IO GameState
-        _handleServerMessages gs = do
+        handleServerMessages :: GameState -> IO GameState
+        handleServerMessages gs = do
             mServerMessage <- atomically $ tryReadTChan $ serverMessages gs
             if isNothing mServerMessage
                 then return gs
@@ -185,70 +185,22 @@ onUpdate delta _gameState =
                                 -- hier müsste verm. auch ein map handling stattfinden
                                 Message [Source Server] (SetID i) -> do
                                     -- unter umständen muss respnse gestored werden wenn server antwort zu schnell kommt
-                                    atomically $ writeTChan (clientMessages gs) $ Message [Source (Client i)] GetMyInfo 
+
+                                    atomically $ writeTChan (clientMessages gs) $ Message [Source (Client i), Target (Map $ mapID gs)] Null 
                                     return $ gs {clientID = Just i} 
 
                                 Message [Source (Client i)] (PositionUpdate (x,y)) -> do
                                     let updatedPlayer = case M.lookup i $ list_OtherPlayer gs of
-                                                    Just op -> op {x = Just x, y = Just y}
-                                                    Nothing -> OP {x = Just x, y = Just y, health = (0,0)}
+                                                    Just player -> M.insert i player {pI_position = (x,y)} $ list_OtherPlayer gs
+                                                    Nothing -> M.insert i (PI (-1) (-1,-1) (0,0)) $ list_OtherPlayer gs
                               
-                                    return gs {list_OtherPlayer = M.insert i updatedPlayer $ list_OtherPlayer gs}
+                                    return gs {list_OtherPlayer = updatedPlayer}-- {list_OtherPlayer = M.insert i updatedPlayer $ list_OtherPlayer gs}
                                     
-                                Message [Source Server] (PlayerInformation []) -> do
-                                    -- ... ToDo
-                                    return gs
+                                Message [Source Server] (PlayerInformation m) -> return gs {list_OtherPlayer = m}
                                 _ -> return gs
 
 
 
-
-
-
-
-        {--
-        --depricated -> zukünftig ersetzten mit: _handleServerMessages
-        handleServerMessages :: GameState -> IO GameState
-        handleServerMessages gs = do
-            mServerMessage <- atomically $ tryReadTChan  $ serverMessages gs
-            case mServerMessage of
-                Just (Message [Source Server] (SetID i)) -> do
-                    --print mServerMessage
-                    atomically $ writeTChan (clientMessages gs) $ Message [Source $ Client i, Target Broadcast ] Introduce
-                    return $ gs {clientID = Just i}
-
-                -- ToDo: auslagern -------------------------
-                -- überlegen ob redundante Abfragen besser gelöst werden können
-                Just (Message [Source (Client i)] Introduce ) -> do
-                    --print mServerMessage
-                    if isNothing $ clientID gs
-                        then return gs
-                        else if (\(Just i) -> i) (clientID gs) == i
-                            then return gs
-                            else do
-                                let newUnit = OP {x = Nothing, y = Nothing, health = (100,100)}
-                                return gs {list_OtherPlayer = M.insert i newUnit $ list_OtherPlayer gs}
-                Just (Message [Source (Client i)] (PositionUpdate (_x, _y))) -> do
-                    --print mServerMessage
-                    if isNothing $ clientID gs
-                        then return gs
-                        else if (\(Just i) -> i) (clientID gs) == i
-                            then return gs
-                            else do
-                                --print mServerMessage
-                                let -- makeMaybe (x,y) = (Just x, Just y)
-                                    updatedOP = case M.lookup i $ list_OtherPlayer gs of
-                                                    Just op -> op {x = Just _x, y = Just _y}
-                                                    Nothing -> OP {x = Just _x, y = Just _y, health = (0,0)}
-                                --print $ makeMaybe p
-                                --return gs
-                                --print ( M.lookup i $ list_OtherPlayer gs  :: Maybe OtherPlayer)
-                                return gs {list_OtherPlayer = M.insert i updatedOP $ list_OtherPlayer gs}
-                --Just (Message [Source (Client c), Target (Client b)] (Action i)) -> return gs
-                _ -> do
-                    unless (isNothing mServerMessage) $ print mServerMessage
-                    return gs
-        --}
         procedureInput :: GameState -> IO GameState
         procedureInput gs = do
 
@@ -268,7 +220,7 @@ onUpdate delta _gameState =
 
     in  (       sendPosition
         >=>     handleActivePing
-        >=>     _handleServerMessages
+        >=>     handleServerMessages
         >=>     procedureInput
         ) _gameState
 
