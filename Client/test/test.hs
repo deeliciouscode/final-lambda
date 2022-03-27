@@ -43,9 +43,7 @@ tileSheedToMap path = do
 
 main = do
 
-
-
-    l <- tileSheed "tilesheet.bmp"
+    l <- tileSheed "images/tilesheet.bmp"
 
     playIO
         (InWindow "WindowName" (600,100) (10,10))

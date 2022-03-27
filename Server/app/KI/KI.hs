@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 -- {-# HLINT ignore "Redundant section" #-}
-module Server.KI.KI where
+module KI.KI where
 
-import Server.KI.Structures
-import Server.KI.Config
-import Server.KI.Lenses
+import KI.Structures
+import KI.Config
+import KI.Lenses
 import Helpers
 
 import System.Random ()

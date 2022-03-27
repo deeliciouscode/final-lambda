@@ -1,12 +1,12 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
 
-module Server.Dungeons.Gen where
+module Dungeons.Gen where
 
 import Prelude as P
-import Server.Dungeons.Config
+import Dungeons.Config
 import Helpers
-import Server.Dungeons.NaiveMST
+import Dungeons.NaiveMST
 
 import Data.List as LIST
 import qualified Data.List.NonEmpty as LNE

@@ -1,9 +1,9 @@
-module Server.KI.Debug where
+module KI.Debug where
 
-import Server.KI.KI
-import Server.KI.Structures
-import Server.KI.Config
-import Server.KI.Lenses
+import KI.KI
+import KI.Structures
+import KI.Config
+import KI.Lenses
 import Helpers
 
 import System.Random ()

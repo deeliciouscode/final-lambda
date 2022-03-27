@@ -1,6 +1,6 @@
-module Server.KI.Lenses where
+module KI.Lenses where
 
-import Server.KI.Structures
+import KI.Structures
 import Helpers
 
 import Control.Lens

@@ -6,7 +6,7 @@ Generelles ToDo:
 -}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant if" #-}
-module Client.GraphicClient where
+module GraphicClient where
 
 import LibMessage
 import LibServer
@@ -42,11 +42,10 @@ data GameState = GS {
     } 
 
 
-
-
-
-main :: IO ()
-main = do
+-- main :: IO ()
+-- main = do
+runClient :: IO ()
+runClient = do
 
     -- ToDo:
     -- Aufpassen: TChan eigentlich gedacht für unsafePerformIO
@@ -54,8 +53,8 @@ main = do
     serverMessages <- atomically newTChan :: IO (TChan Message)
     clientMessages <- atomically newTChan :: IO (TChan Message)
 
-    playerTile <- loadBMP "rechteck_gruen.bmp"
-    other_Player_Tile <- loadBMP  "rechteck_rot.bmp"
+    playerTile <- loadBMP "images/rechteck_gruen.bmp"
+    other_Player_Tile <- loadBMP  "images/rechteck_rot.bmp"
 
     let initialState = GS
             serverMessages

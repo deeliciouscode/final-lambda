@@ -55,19 +55,9 @@ executable final-lambda
         ,   bytestring == 0.10.12.0
         ,   binary == 0.8.9.0
         ,   stm == 2.5.0.1
+        ,   old-time == 1.1.0.3
     other-modules:
-        Server.Dungeons.Gen 
-        Server.Dungeons.NaiveMST 
-        Server.Dungeons.Config
-        Server.Dungeons.Transform
-        Server.KI.Config
-        Server.KI.KI
-        Server.KI.Lenses
-        Server.KI.Structures
-        Server.KI.Debug
-        Server.ServerMinimal        
-        Client.GraphicClient
-        Helpers
+        GraphicClient
         LibMessage
         LibServer
 

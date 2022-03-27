@@ -21,7 +21,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Server.Dungeons.NaiveMST where
+module Dungeons.NaiveMST where
 
 import           Algorithms.Geometry.DelaunayTriangulation.Naive
 import           Algorithms.Geometry.DelaunayTriangulation.Types

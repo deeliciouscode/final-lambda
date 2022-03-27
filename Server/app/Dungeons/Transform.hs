@@ -1,6 +1,6 @@
-module Server.Dungeons.Transform where
+module Dungeons.Transform where
 
-import Server.Dungeons.Config
+import Dungeons.Config
 
 import Graphics.Image.Interface as IF
 import Graphics.Image

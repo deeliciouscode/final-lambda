@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-module LibMessage where
+module Server.LibMessage where
 
 import Network.Socket(Socket)
 import Data.ByteString.Char8 ( ByteString ) 
@@ -53,6 +53,7 @@ data Message =  Message [Destionation] Payload
 data Payload = 
                     SetID Int                                       -- initiale ID an Client
                 |   PositionUpdate (Float, Float)
+                |   MapBotPosition (Map Int (Float, Float))         -- Map from Bot ID to Bot position
                 |   Action Int                                      -- ActionID
                 |   HealthChanged Float                             -- wenn positiv: dann Heal
                                                                     -- wenn negativ: damage
