@@ -80,8 +80,8 @@ genBot i circles = Bot {
           | encodedStyle == 1 = "devensive"
           | otherwise = "balanced" :: String
 
-        perimeter' = randomNumber (seed - i*3) 50 80 :: Float
-        -- perimeter' = 100 :: Float
+        -- perimeter' = randomNumber (seed - i*3) 50 80 :: Float
+        perimeter' = 100 :: Float
 
         strength' = randomNumber (seed - i*4) 3 10 :: Int
         awareness' = randomNumber (seed - i*6) 3 10 :: Int
@@ -94,7 +94,7 @@ genBot i circles = Bot {
         homebase' = position'
 
         direction' = normalize' (randomNumber (seed - i*1120) (-1) 1, randomNumber (seed - i*11370) (-1) 1) :: (Float, Float)
-        velocity' = randomNumber (seed - i*5) 10 20 :: Float
+        velocity' = randomNumber (seed - i*5) 25 30 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool
 
@@ -206,7 +206,7 @@ calcNewMovementAttrs state seconds bots players (movementAttrs, n, ixs) = newMov
         nearestPlayer = players !! nearestPlayerI
         inPerimeter = view movementPerimeterL movementAttrs >= distance (view positionL nearestPlayer) (view movementPositionL movementAttrs)
         inReach = 20 >= distance (view positionL nearestPlayer) (view movementPositionL movementAttrs)
-        wallDistance = calcWallDistance state movementAttrs
+        wallDistanceLR = calcWallDistanceLR state movementAttrs
 
         (pos, _, hb, v, p) = movementAttrs
 
@@ -214,7 +214,7 @@ calcNewMovementAttrs state seconds bots players (movementAttrs, n, ixs) = newMov
         cohesion = normalizeC n $ LST.foldr addToMovementsAttrsCohesion movementAttrs relevantBots
         separation = normalizeS n $ LST.foldr addToMovementsAttrsSeparation movementAttrs relevantBots
         homebaseAwareness = normalizeH $ addToMovementsAttrsHomebaseAwareness movementAttrs
-        wallAwareness = normalizeW wallDistance $ addToMovementsAttrsWallAwareness movementAttrs
+        wallAwareness = normalizeW wallDistanceLR $ addToMovementsAttrsWallAwareness movementAttrs wallDistanceLR
         playerAwareness = normalizeP $ addToMovementsAttrsPlayerAwareness movementAttrs nearestPlayer
         newMovementAttrs
             | inReach = (pos, (0,0), hb, v, p)
@@ -301,11 +301,13 @@ addToMovementsAttrsHomebaseAwareness ((x,y), (dirX,dirY), hb@(hbX,hbY), v, p) = 
     where
         mvmnt' = ((x,y), (dirX+hbX,dirY+hbY), hb, v, p)
 
-addToMovementsAttrsWallAwareness :: MovementAttr -> MovementAttr
-addToMovementsAttrsWallAwareness (pos, (dirX,dirY), hb, v, p) = (pos, (-dirX,-dirY), hb, v, p)
+addToMovementsAttrsWallAwareness :: MovementAttr -> (Float, Float) -> MovementAttr
+addToMovementsAttrsWallAwareness (pos, dir, hb, v, p) (wallDL, wallDR) = (pos, dir', hb, v, p) 
+    where
+        dir' = if wallDL > wallDR then rotateV 0.5 dir else rotateV (-0.5) dir
 
 normalizeA :: Int -> MovementAttr -> MovementAttr
-normalizeA n = over movementDirectionL $ normalizeWeighted 2
+normalizeA n = over movementDirectionL $ normalizeWeighted 1
 
 normalizeC :: Int -> MovementAttr -> MovementAttr
 -- normalizeC n mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `flip`) pos . tApp2 (/) (fromIntegral n,fromIntegral n)) mvmnt
@@ -314,7 +316,7 @@ normalizeC n mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `
         pos = view movementPositionL mvmnt
 
 normalizeS :: Int -> MovementAttr -> MovementAttr
-normalizeS n = over movementDirectionL (normalizeWeighted 1 . tApp1 (*(-1)))
+normalizeS n = over movementDirectionL (normalizeWeighted 1.5 . tApp1 (*(-1)))
 
 normalizeP :: MovementAttr -> MovementAttr
 normalizeP mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `flip`) pos) mvmnt
@@ -327,12 +329,13 @@ normalizeH mvmnt = over movementDirectionL (normalizeWeighted weight . (tApp2 (-
     where
         pos = view movementPositionL mvmnt
         hb = view movementHomebaseL mvmnt
-        weight = distance pos hb / 200
+        weight = distance pos hb / 300
 
-normalizeW :: Float -> MovementAttr -> MovementAttr
-normalizeW wallDist = over movementDirectionL (normalizeWeighted weight)
+normalizeW :: (Float, Float) -> MovementAttr -> MovementAttr
+normalizeW wallDistLR = over movementDirectionL (normalizeWeighted weight)
     where
-        weight = if wallDist == (read "Infinity"::Float) then 0 else 200 / (wallDist+eps)**2
+        wallDist = uncurry min wallDistLR
+        weight = if wallDist == (read "Infinity"::Float) then 0 else 300 / (wallDist+eps)**2
 
 normalizeF :: MovementAttr -> MovementAttr
 normalizeF = over movementDirectionL normalize'
