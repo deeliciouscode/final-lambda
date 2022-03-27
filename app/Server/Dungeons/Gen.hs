@@ -5,7 +5,7 @@ module Server.Dungeons.Gen where
 
 import Prelude as P
 import Server.Dungeons.Config
-import Server.Dungeons.Helpers
+import Helpers
 import Server.Dungeons.NaiveMST
 
 import Data.List as LIST

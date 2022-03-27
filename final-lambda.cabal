@@ -54,8 +54,7 @@ executable final-lambda
     other-modules:
         Server.Dungeons.Gen 
         Server.Dungeons.NaiveMST 
-        Server.Dungeons.Config 
-        Server.Dungeons.Helpers
+        Server.Dungeons.Config
         Server.Dungeons.Transform
         Helpers
         Server.KI.Config

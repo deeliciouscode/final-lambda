@@ -1,7 +1,7 @@
 module Helpers where
 
 import System.Random
-
+import Data.List
 
 fstOf4 :: (a,b,c,d) -> a
 fstOf4 (a, _, _, _) = a
@@ -56,6 +56,9 @@ normalizeWeighted w (vx,vy) = (vx', vy')
                     vx' = round' ((vx / lenV) * w) 2
                     vy' = round' ((vy / lenV) * w) 2
 
+nRandoms :: RandomGen g => Int -> Float -> Float -> g -> [Float]
+nRandoms n min max = take n . unfoldr (Just . uniformR (min, max))
+
 tApp1 :: (a -> b) -> (a, a) -> (b, b)
 tApp1 f (a,b) = (f a, f b)
 
@@ -85,7 +88,3 @@ rotate90Clockwise (x, y) = (y, x*(-1))
 
 rotate90CounterClockwise :: (Float, Float) -> (Float, Float)
 rotate90CounterClockwise (x, y) = (y*(-1), x)
-
-rotate :: Float -> (Float, Float) -> (Float, Float)
-rotate beta (x, y) = (cos beta * x - sin beta * y, cos beta * x - sin beta * y)
-
