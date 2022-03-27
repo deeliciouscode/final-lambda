@@ -1,0 +1,5 @@
+source-repository-package
+  type: git
+  location: https://github.com/deepshared/gloss-game.git
+  
+packages: ./final-lambda.cabal
