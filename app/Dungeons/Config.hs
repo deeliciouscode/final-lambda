@@ -7,6 +7,7 @@ seed = 420
 --------- Image --------- 
 sideLen :: Float
 sideLen = 1000
+-- sideLen = 100
 
 midX :: Float
 midX = sideLen / 2
@@ -27,6 +28,7 @@ neighborThreshold = sideLen / 6
 
 iterations :: Int
 iterations = 30
+-- iterations = 7
 
 velocity :: Float
 velocity = 1.5
