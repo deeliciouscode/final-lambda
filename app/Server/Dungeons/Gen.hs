@@ -36,7 +36,7 @@ type Circles = [Circle]
 type Agent = (Float, (Float, Float), (Float, Float), Int)
 type Agents = [Agent]
 type FlockingFunction = (Agent -> Agents -> Agent)
-
+type Matrix = [[Int]]
 
 ------------------------------- Setup -------------------------------
 
@@ -297,24 +297,20 @@ saveGloss = do
     let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
     return metaInfo
 
-saveGlossDebug :: IO ((Float,Float), Circles)
-saveGlossDebug = do
-    exportPictureToFormat writePng (round sideLen, round sideLen) black "images/calibration.png" objectsCalibration'
-    let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
-    return metaInfo
+-- saveGlossDebug :: IO ((Float,Float), Circles)
+-- saveGlossDebug = do
+--     exportPictureToFormat writePng (round sideLen, round sideLen) black "images/calibration.png" objectsCalibration'
+--     let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
+--     return metaInfo
 
-objectsCalibration :: Picture 
-objectsCalibration = pictures [color white $ circleSolid 100, 
-                                GLOSS.translate (-midX+100) (-midY+100) $ color red $ circleSolid 100,
-                                GLOSS.translate (-midX+100) (-midY+900) $ color green $ circleSolid 100,
-                                GLOSS.translate (-midX+900) (-midY+900) $ color blue $ circleSolid 100]
+-- objectsCalibration :: Picture 
+-- objectsCalibration = pictures [color white $ circleSolid 100, 
+--                                 GLOSS.translate (-midX+100) (-midY+100) $ color red $ circleSolid 100,
+--                                 GLOSS.translate (-midX+100) (-midY+900) $ color green $ circleSolid 100,
+--                                 GLOSS.translate (-midX+900) (-midY+900) $ color blue $ circleSolid 100]
 
-
-objectsCalibration' :: Picture 
-objectsCalibration' = GLOSS.translate (-midX+900) (-midY+900) $ color white $ circleSolid 100
-
-picture :: Picture
-picture = pictures $ scale sideLen sideLen blank : [objects]
+-- objectsCalibration' :: Picture 
+-- objectsCalibration' = GLOSS.translate (-midX+900) (-midY+900) $ color white $ circleSolid 100
 
 objects :: Picture
 objects = combinePictures circles'''

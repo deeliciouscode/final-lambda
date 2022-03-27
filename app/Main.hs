@@ -33,7 +33,8 @@ main = do
     cluster <- readImageRGB VS "images/test_gloss.png"
     let dungeonImage = png "images/gloss_new.png"
     dungeon <- transformToMatrix cluster
-    playWithKI meta dungeon dungeonImage  
+    return ()
+    -- playWithKI meta dungeon dungeonImage  
 
     -- simulateKI
     -- return ()
