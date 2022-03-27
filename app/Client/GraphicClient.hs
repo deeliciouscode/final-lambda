@@ -6,9 +6,10 @@ Generelles ToDo:
 -}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant if" #-}
+module Client.GraphicClient where
 
-import Lib_Message
-import Lib_Server
+import LibMessage
+import LibServer
 --import Server_Minimal
 
 

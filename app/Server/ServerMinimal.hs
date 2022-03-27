@@ -1,8 +1,8 @@
 {-# LANGUAGE DerivingStrategies #-}
-module Server_Minimal where
+module Server.ServerMinimal where
 
-import Lib_Message
-import Lib_Server
+import LibMessage
+import LibServer
 
 import Network.Socket
     ( setCloseOnExecIfNeeded,

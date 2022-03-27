@@ -1,4 +1,4 @@
-module Lib_Server where
+module LibServer where
 
 import Network.Socket
     ( setCloseOnExecIfNeeded,
@@ -25,7 +25,7 @@ import Network.Socket
 import Control.Exception (bracket, bracketOnError)
 import Control.Concurrent
     ( forkFinally, writeChan, swapMVar, readMVar, Chan, MVar )
-import Lib_Message
+import LibMessage
     ( fromByteString,
       Destionation(ConnectionWrapper),
       Message(..),

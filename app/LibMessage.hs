@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-module Lib_Message where
+module LibMessage where
 
 import Network.Socket(Socket)
 import Data.ByteString.Char8 ( ByteString ) 

@@ -51,16 +51,25 @@ executable final-lambda
         ,   utility-ht == 0.0.16
         ,   Cabal
         ,   gloss-game
+        ,   network == 3.1.2.7
+        ,   bytestring == 0.10.12.0
+        ,   binary == 0.8.9.0
+        ,   stm == 2.5.0.1
     other-modules:
         Server.Dungeons.Gen 
         Server.Dungeons.NaiveMST 
         Server.Dungeons.Config
         Server.Dungeons.Transform
-        Helpers
         Server.KI.Config
         Server.KI.KI
         Server.KI.Lenses
         Server.KI.Structures
         Server.KI.Debug
+        Server.ServerMinimal        
+        Client.GraphicClient
+        Helpers
+        LibMessage
+        LibServer
+
     hs-source-dirs:   app
     default-language: Haskell2010
