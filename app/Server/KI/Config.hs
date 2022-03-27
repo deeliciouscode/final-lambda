@@ -1,6 +1,6 @@
-module KI.Config where
+module Server.KI.Config where
 
-import KI.Structures
+import Server.KI.Structures
 import Graphics.Gloss
 
 seed :: Int

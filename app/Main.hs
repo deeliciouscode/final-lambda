@@ -1,10 +1,10 @@
 module Main where
     
-import Dungeons.Gen
-import Dungeons.Config
-import Dungeons.Transform
-import KI.KI
-import KI.Debug
+import Server.Dungeons.Gen
+import Server.Dungeons.Config
+import Server.Dungeons.Transform
+import Server.KI.KI
+import Server.KI.Debug
 import Graphics.Gloss
 import Graphics.Gloss.Game
 import GHC.Real (Integral(toInteger))
@@ -44,3 +44,4 @@ main = do
     -- map <- transformToMatrix cluster
     -- let dungeon = png "images/gloss_new.png"
     -- debugKI meta map dungeon
+

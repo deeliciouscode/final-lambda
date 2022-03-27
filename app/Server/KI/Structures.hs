@@ -1,4 +1,4 @@
-module KI.Structures where
+module Server.KI.Structures where
 
 import Data.Vector.Storable
 data Entity = Bot  { 

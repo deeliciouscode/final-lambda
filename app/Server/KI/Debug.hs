@@ -1,15 +1,16 @@
-module KI.Debug where
+module Server.KI.Debug where
 
-import KI.KI
-import KI.Structures
-import KI.Config
+import Server.KI.KI
+import Server.KI.Structures
+import Server.KI.Config
+import Server.KI.Lenses
+import Helpers
+
 import System.Random ()
-import KI.Lenses
 import Graphics.Gloss as GLOSS
 import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
 import Control.Lens
-import Helpers
 import Data.Function (on)
 import Data.List as LST
 import qualified Graphics.Image.Interface as IF

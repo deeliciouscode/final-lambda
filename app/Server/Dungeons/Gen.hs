@@ -1,11 +1,12 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
 
-module Dungeons.Gen where
+module Server.Dungeons.Gen where
 
 import Prelude as P
-import Dungeons.Config
-import Dungeons.Helpers
+import Server.Dungeons.Config
+import Server.Dungeons.Helpers
+import Server.Dungeons.NaiveMST
 
 import Data.List as LIST
 import qualified Data.List.NonEmpty as LNE
@@ -23,7 +24,6 @@ import Control.Lens as LENS
 
 import Data.Geometry as GEO
 import Algorithms.Geometry.DelaunayTriangulation.Naive
-import Dungeons.NaiveMST
 import Algorithms.Geometry.DelaunayTriangulation.Types
 import Graphics.Gloss (scale, blank)
 

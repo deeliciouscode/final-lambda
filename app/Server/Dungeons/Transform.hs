@@ -1,11 +1,12 @@
-module Dungeons.Transform where
+module Server.Dungeons.Transform where
+
+import Server.Dungeons.Config
 
 import Graphics.Image.Interface as IF
 import Graphics.Image
 import Graphics.Image.IO
 import Graphics.Image.IO.Formats
 import Graphics.Image.Types
-import Dungeons.Config
 import Data.Vector.Unboxed.Base as VSB
 import Prelude as P
 import Data.Maybe

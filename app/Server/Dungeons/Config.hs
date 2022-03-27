@@ -1,4 +1,4 @@
-module Dungeons.Config where
+module Server.Dungeons.Config where
 
 --------- Randomness --------- 
 seed :: Int

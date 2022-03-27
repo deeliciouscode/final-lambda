@@ -1,10 +1,11 @@
-module KI.Lenses where
+module Server.KI.Lenses where
 
-import KI.Structures
+import Server.KI.Structures
+import Helpers
+
 import Control.Lens
 import Data.Maybe.HT
 import Distribution.Utils.Generic
-import Helpers
 import Data.Vector.Storable
 
 -- https://hackage.haskell.org/package/lens-tutorial-1.0.4/docs/Control-Lens-Tutorial.html#g:2

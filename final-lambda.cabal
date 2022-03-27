@@ -52,16 +52,16 @@ executable final-lambda
         ,   Cabal
         ,   gloss-game
     other-modules:
-        Dungeons.Gen 
-        Dungeons.NaiveMST 
-        Dungeons.Config 
-        Dungeons.Helpers
-        Dungeons.Transform
+        Server.Dungeons.Gen 
+        Server.Dungeons.NaiveMST 
+        Server.Dungeons.Config 
+        Server.Dungeons.Helpers
+        Server.Dungeons.Transform
         Helpers
-        KI.Config
-        KI.KI
-        KI.Lenses
-        KI.Structures
-        KI.Debug
+        Server.KI.Config
+        Server.KI.KI
+        Server.KI.Lenses
+        Server.KI.Structures
+        Server.KI.Debug
     hs-source-dirs:   app
     default-language: Haskell2010

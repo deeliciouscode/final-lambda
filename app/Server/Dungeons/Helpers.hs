@@ -1,4 +1,4 @@
-module Dungeons.Helpers where
+module Server.Dungeons.Helpers where
 
 import Data.List as LIST
 import System.Random
