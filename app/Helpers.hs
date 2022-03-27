@@ -2,6 +2,7 @@ module Helpers where
 
 import System.Random
 
+
 fstOf4 :: (a,b,c,d) -> a
 fstOf4 (a, _, _, _) = a
 

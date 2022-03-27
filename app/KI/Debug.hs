@@ -24,6 +24,7 @@ import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
 import Graphics.Gloss.Data.Vector
 
+
 debugKI :: (Point, [Point]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO()
 debugKI meta map dungeon = do
     let state = uncurry (makeDebugState meta) map
@@ -31,13 +32,10 @@ debugKI meta map dungeon = do
     let wallDistance = calcWallDistanceLRDebug state mvmnt
     print meta
     print $ fst map
-    -- print dungeon
     print mvmnt
     print wallDistance
-    -- print $ LST.head $ toListOf (botsL . traverse . perimeterL) state
     exportPictureToFormat writePng (1000, 1000) black "images/gloss_debug.png" $ renderDebug dungeon state
     return ()
-
 
 makeDebugState :: (Point, [Point]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
 makeDebugState (playerPos, botSpawns) dims vector = State {
@@ -48,7 +46,6 @@ makeDebugState (playerPos, botSpawns) dims vector = State {
                                     }
 
 genBotsDebug :: Int -> [(Float, Float)] -> [Entity]
--- genBots = take nBots $ repeat $ genBot $ mkStdGen seed 
 genBotsDebug _ [] = []
 genBotsDebug 0 _ = []
 genBotsDebug n centers = genBotDebug n centers : genBotsDebug (n-1) centers
@@ -89,12 +86,11 @@ calcWallDistanceDebug state mvmnt = values
         vector = view playgroundL state
         perimeter = view movementPerimeterL mvmnt
         cols = fst (view dimsL state)
-        (posX, posY) = view movementPositionL mvmnt -- 900,900
+        (posX, posY) = view movementPositionL mvmnt
         c = fromIntegral (fst (view dimsL state)) / 2
-        dx = posX - c -- 400
-        dy = posY - c -- 400
-        pos = (c - dy, c + dx) -- (900, 100)
-        -- pos = (posX, 999-posY)
+        dx = posX - c 
+        dy = posY - c
+        pos = (c - dy, c + dx)
         dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
 
         pos's = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' dir))) [1..perimeter]
@@ -113,12 +109,12 @@ calcWallDistanceLRDebug state mvmnt = ((wallDistanceLeft, wallDistanceRight), di
         vector = view playgroundL state
         perimeter = view movementPerimeterL mvmnt
         cols = fst (view dimsL state)
-        (posX, posY) = view movementPositionL mvmnt -- 900,900
+        (posX, posY) = view movementPositionL mvmnt 
         c = fromIntegral (fst (view dimsL state)) / 2
-        dx = posX - c -- 400
-        dy = posY - c -- 400
-        pos = (c - dy, c + dx) -- (900, 100)
-        -- pos = (posX, 999-posY)
+        dx = posX - c 
+        dy = posY - c 
+        pos = (c - dy, c + dx) 
+        
         dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
         left = rotateV 0.5 dir
         right = rotateV (-0.5) dir
