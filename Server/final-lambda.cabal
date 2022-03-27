@@ -61,11 +61,14 @@ executable final-lambda
         Dungeons.NaiveMST 
         Dungeons.Config
         Dungeons.Transform
+        Dungeons.API
+        Dungeons.Structures
         KI.Config
         KI.KI
         KI.Lenses
         KI.Structures
         KI.Debug
+        KI.API
         Server.ServerMinimal   
         Server.Game     
         Server.LibMessage

@@ -7,48 +7,54 @@ import Prelude as P
 import Dungeons.Config
 import Helpers
 import Dungeons.NaiveMST
-
+import Dungeons.Structures
 import Data.List as LIST
 import qualified Data.List.NonEmpty as LNE
 import Data.Random.Normal
 import Data.Tree as Tree
 import Data.Ext as EXT
 import Data.Map.Internal as MAP
-
 import Graphics.Gloss as GLOSS
 import Graphics.Gloss.Export.Image
 import Codec.Picture
-
 import System.Random
 import Control.Lens as LENS
-
 import Data.Geometry as GEO
 import Algorithms.Geometry.DelaunayTriangulation.Naive
 import Algorithms.Geometry.DelaunayTriangulation.Types
 import Graphics.Gloss (scale, blank)
 
-------------------------------- Data Types -------------------------------
+------------------------------- Generate -------------------------------
 
---   Circle = (r, (x,y))
-type Circle = (Float, (Float, Float))
-type Circles = [Circle]
---   Agent = (r, (x,y), (vx,vy), n)
-type Agent = (Float, (Float, Float), (Float, Float), Int)
-type Agents = [Agent]
-type FlockingFunction = (Agent -> Agents -> Agent)
-type Matrix = [[Int]]
+generateDungeon :: Int -> Float -> IO (Picture, (Float, Float), Circles)
+generateDungeon seed sideLen = do
+    let circles = zip (radii seed) (centers seed sideLen)
+    let circles' = flockCircles circles
+    let circles'' = removeCircles'' circles'
+    let mst = makeMST . toNonEmptyList $ toPoints' circles''
+    let triangles = triangulate . toNonEmptyList $ toPoints' circles''
+    let picture = combinePictures triangles mst circles''
+    return (picture, snd $ last circles'', LIST.take 30 circles'') 
+
+-- saveGloss :: IO ((Float,Float), Circles)
+-- saveGloss = do
+    -- exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
+--     let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
+--     return metaInfo
 
 ------------------------------- Setup -------------------------------
 
-radii :: [Float]
-radii = reverse . sort $ LIST.take nCircles (mkNormals' (meanRadius, sd) seed)
+radii :: Int -> [Float]
+radii seed = reverse . sort $ LIST.take nCircles (mkNormals' (meanRadius, sd) seed)
 
-centers = zip xCors yCors
+centers :: Int -> Float -> [(Float, Float)]
+centers seed sideLen = zip xCors yCors
             where
                 xCors = nRandoms nCircles (sideLen * 0.2) (sideLen * 0.8) (mkStdGen seed)
                 yCors = nRandoms nCircles (sideLen * 0.2) (sideLen * 0.8) (mkStdGen (seed+1))
 
-circles = zip radii centers
+circles :: [(Float, (Float, Float))]
+circles = zip (radii seed) (centers seed sideLen)
 
 testCircles :: Circles
 testCircles = [(26.77658,(196.68921,236.81659)),(30.364641,(339.12732,210.95541)),(33.663124,(227.78206,344.70084)),(35.233494,(275.62262,281.27032)),(38.001255,(257.7942,301.88495)),(39.244896,(288.4538,203.14005))]
@@ -313,10 +319,10 @@ saveGloss = do
 -- objectsCalibration' = GLOSS.translate (-midX+900) (-midY+900) $ color white $ circleSolid 100
 
 objects :: Picture
-objects = combinePictures circles'''
+objects = combinePictures triangles mst circles'''
 
-combinePictures :: Circles -> Picture
-combinePictures circles = pictures $ circlesToPictures circles ++ treeToTunnels mst
+combinePictures :: Triangulation Float Float -> Tree (GEO.Point 2 Float :+ Float) -> Circles -> Picture
+combinePictures triangles mst circles = pictures $ circlesToPictures circles ++ treeToTunnels triangles mst
 -- combinePictures circles = pictures $ [(GLOSS.translate (-midX) (-midY) $ color green $ circleSolid 20)] ++ treeToTunnels mst
 
 circlesToPictures :: Circles -> [Picture]
@@ -326,18 +332,18 @@ circlesToPictures ((r, (x,y)):xs) = circle : circlesToPictures xs
                         ballColor = white
                         circle = GLOSS.translate (-midX+x) (-midY+y) $ color ballColor $ circleSolid r
 
-treeToTunnels ::  Tree.Tree (GEO.Point 2 Float EXT.:+ Float) -> [Picture]
-treeToTunnels tree =
+treeToTunnels :: Triangulation Float Float -> Tree.Tree (GEO.Point 2 Float EXT.:+ Float) -> [Picture]
+treeToTunnels triangles tree =
     case subForest tree of
         [] -> []
-        subTrees -> makeLines (rootLabel tree) subTrees ++ treesToTunnels subTrees
+        subTrees -> makeLines triangles (rootLabel tree) subTrees ++ treesToTunnels triangles subTrees
 
-treesToTunnels ::  [Tree.Tree (GEO.Point 2 Float EXT.:+ Float)] -> [Picture]
-treesToTunnels = concatMap treeToTunnels
+treesToTunnels :: Triangulation Float Float -> [Tree.Tree (GEO.Point 2 Float EXT.:+ Float)] -> [Picture]
+treesToTunnels triangles = concatMap $ treeToTunnels triangles
 
-makeLines :: GEO.Point 2 Float EXT.:+ Float -> [Tree.Tree (GEO.Point 2 Float EXT.:+ Float)] -> [Picture]
-makeLines _ [] = []
-makeLines point (t:ts) = picture' : makeLines point ts
+makeLines :: Triangulation Float Float -> GEO.Point 2 Float EXT.:+ Float -> [Tree.Tree (GEO.Point 2 Float EXT.:+ Float)] -> [Picture]
+makeLines _ _ [] = []
+makeLines triangles point (t:ts) = picture' : makeLines triangles point ts
                 where
                     x = _core point ^. xCoord
                     y = _core point ^. yCoord
@@ -347,20 +353,20 @@ makeLines point (t:ts) = picture' : makeLines point ts
                     y' = _core point' ^. yCoord
                     r' = _extra point'
                     paths = calcPaths (x,y) (x',y') (r,r')
-                    additionalPaths = additionalTunnel point $ mkStdGen $ round $ x*y
+                    additionalPaths = additionalTunnel triangles point $ mkStdGen $ round $ x*y
                     pictures' = LIST.map (color white . polygon) (paths ++ additionalPaths)
                     picture = pictures pictures'
                     picture' = GLOSS.translate (-midX) (-midY) picture
 
-additionalTunnel :: GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
-additionalTunnel point gen = tunnelOrEmpty
+additionalTunnel :: Triangulation Float Float -> GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
+additionalTunnel triangles point gen = tunnelOrEmpty
                     where
                         (p, gen') = randomR (0,1) gen :: (Float, StdGen)
                         tunnelOrEmpty = if p < 0.7 then []
-                                        else pathToRandomNeigbor point gen'
+                                        else pathToRandomNeigbor triangles point gen'
 
-pathToRandomNeigbor :: GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
-pathToRandomNeigbor point gen = case MAP.lookup (_core point) $ view vertexIds triangles of
+pathToRandomNeigbor :: Triangulation Float Float -> GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
+pathToRandomNeigbor triangles point gen = case MAP.lookup (_core point) $ view vertexIds triangles of
                                     Nothing -> []
                                     Just i -> case view neighbours triangles ^? LENS.element i of
                                         Nothing -> []

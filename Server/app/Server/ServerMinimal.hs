@@ -39,7 +39,7 @@ import Control.Concurrent (
     Chan,
     writeChan,
     readChan,
-    forkIO, modifyMVar_, newMVar, takeMVar, putMVar)
+    forkIO, modifyMVar_, newMVar, takeMVar, putMVar, threadDelay)
 import Network.Socket.ByteString (sendAll, recv)
 import Data.ByteString.Char8 (unpack, pack, ByteString)
 import qualified Data.ByteString  as BS
@@ -47,6 +47,7 @@ import Data.ByteString.Lazy (fromStrict, toStrict)
 import Control.Monad (unless, forever, void, when)
 import GHC.Generics (Generic)
 import Data.Binary
+import Dungeons.API
 
 import Data.Map as M
 ----------------------------------------------------------
@@ -72,8 +73,8 @@ server   = do
     connectionList <- newMVar [] :: IO (MVar [Socket])
     messageQueue <- newChan :: IO (Chan Message)
 
-    playerList <- newMVar M.empty  :: IO (MVar  (Map Int PlayerInfo)  ) -- sollte verm. in zukunft mit connectionList zusammengelegt werden
-
+    playerList <- newMVar M.empty  :: IO (MVar  (Map Int PlayerInfo)) -- sollte verm. in zukunft mit connectionList zusammengelegt werden
+        
     ----------------------------------------------------------
     -- sendet nextMessage aus Channel an alle Clients
     ----------------------------------------------------------
@@ -119,18 +120,21 @@ server   = do
         print input
         --writeChan messageQueue $ Message [Source Server] $ M input
     -- send 
-    
-    let timedKI s p = do
-            TOD seconds picoSec <- getClockTime
-            -- message <- getMsg
-            when (seconds - s > 1) $ do
+    -- forkIO $ forever $ do
+    --     threadDelay $ round (1000000 / 60)
+    --     playerList <- readMVar playerList 
+    --     message <- getMsg
+        
+    --     readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (MapBotPosition M.empty))) -- bot positions
+    --     readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (MapBotPosition M.empty))) -- bot actions
+        
+    --     print "test"
 
-                playerList <- readMVar playerList 
-                readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (MapBotPosition M.empty))) -- bot positions
-                readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (MapBotPosition M.empty))) -- bot actions
-            timedKI seconds picoSec
-
-    forkIO $ timedKI 0 0
+    forkIO $ forever $ do
+        threadDelay $ round (1000000 / 60)
+        (dims, vector) <- getDungeon 420
+        print dims
+        return ()
 
 
     ----------------------------------------------------------
