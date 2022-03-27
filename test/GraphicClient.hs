@@ -7,9 +7,9 @@ Generelles ToDo:
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant if" #-}
 
-
-
-import Server_Minimal
+import Lib_Message
+import Lib_Server
+--import Server_Minimal
 
 
 import Graphics.Gloss
