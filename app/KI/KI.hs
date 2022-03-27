@@ -23,6 +23,8 @@ import Data.Maybe
 import Data.Tuple
 import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
+import Graphics.Gloss.Data.Vector
+
 
 makeKIState :: (Point, [(Float, (Float,Float))]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
 makeKIState (playerPos, botSpawns) dims vector = State {
@@ -240,6 +242,35 @@ calcWallDistance state mvmnt = wallDistance
         wallDistance = case LST.findIndex (1 /=) pixelValues of
             Nothing -> let infinity = read "Infinity"::Float in infinity
             Just i -> let pos' = pos's !! i in distance pos $ tApp1 fromIntegral pos'
+
+calcWallDistanceLR :: KIState -> MovementAttr -> (Float, Float)
+calcWallDistanceLR state mvmnt = (wallDistanceLeft, wallDistanceRight)
+    where
+        vector = view playgroundL state
+        perimeter = view movementPerimeterL mvmnt
+        cols = fst (view dimsL state)
+        (posX, posY) = view movementPositionL mvmnt -- 900,900
+        c = fromIntegral (fst (view dimsL state)) / 2
+        dx = posX - c -- 400
+        dy = posY - c -- 400
+        pos = (c - dy, c + dx) -- (900, 100)
+        -- pos = (posX, 999-posY)
+        dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
+        left = rotateV 0.5 dir
+        right = rotateV (-0.5) dir
+    
+        pos'sLeft = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' left))) [1..perimeter]
+        pos'sRight = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' right))) [1..perimeter]
+
+        pixelValuesLeft = LST.map ((!) vector . fromIx cols) pos'sLeft
+        pixelValuesRight = LST.map ((!) vector . fromIx cols) pos'sRight
+
+        wallDistanceLeft = case LST.findIndex (1 /=) pixelValuesLeft of
+            Nothing -> let infinity = read "Infinity"::Float in infinity
+            Just i -> let pos' = pos'sLeft !! i in distance pos $ tApp1 fromIntegral pos'
+        wallDistanceRight = case LST.findIndex (1 /=) pixelValuesRight of
+            Nothing -> let infinity = read "Infinity"::Float in infinity
+            Just i -> let pos' = pos'sRight !! i in distance pos $ tApp1 fromIntegral pos'
 
 addToMovementsAttrsAlignment :: Entity -> MovementAttr -> MovementAttr
 addToMovementsAttrsAlignment bot ((x,y), (dirX,dirY), hb, v, p) = mvmnt'

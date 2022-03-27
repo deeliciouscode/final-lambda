@@ -22,19 +22,20 @@ import Data.Maybe
 import Data.Tuple
 import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
+import Graphics.Gloss.Data.Vector
 
 debugKI :: (Point, [Point]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO()
 debugKI meta map dungeon = do
     let state = uncurry (makeDebugState meta) map
     let mvmnt = LST.head $ toListOf (botsL . traverse . movementL) state
-    let wallDistance = calcWallDistanceDebug state mvmnt
+    let wallDistance = calcWallDistanceLRDebug state mvmnt
     print meta
     print $ fst map
     -- print dungeon
     print mvmnt
     print wallDistance
     -- print $ LST.head $ toListOf (botsL . traverse . perimeterL) state
-    exportPictureToFormat writePng (1000, 1000) black "images/gloss_debug.png" $ render dungeon state
+    exportPictureToFormat writePng (1000, 1000) black "images/gloss_debug.png" $ renderDebug dungeon state
     return ()
 
 
@@ -77,11 +78,10 @@ genBotDebug i centers = Bot {
         reach' = 100 :: Int
         position' = (cx, cy) :: (Float, Float)
         homebase' = position'
-        direction' = normalize' (1,0) :: (Float, Float)
+        direction' = normalize' (1,1) :: (Float, Float)
         velocity' = 50 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool
-
 
 calcWallDistanceDebug :: KIState -> MovementAttr -> (Float, (Float,Float), (Float,Float), [(Int,Int)], [Int])
 calcWallDistanceDebug state mvmnt = values
@@ -106,3 +106,55 @@ calcWallDistanceDebug state mvmnt = values
             Just i -> let pos' = pos's !! i in distance pos $ tApp1 fromIntegral pos'
 
         values = (wallDistance, dir, pos, LST.take 200 pos's, LST.take 200 pixelValues)
+
+calcWallDistanceLRDebug :: KIState -> MovementAttr -> ((Float, Float), (Float,Float), (Float,Float))
+calcWallDistanceLRDebug state mvmnt = ((wallDistanceLeft, wallDistanceRight), dir, pos)
+    where
+        vector = view playgroundL state
+        perimeter = view movementPerimeterL mvmnt
+        cols = fst (view dimsL state)
+        (posX, posY) = view movementPositionL mvmnt -- 900,900
+        c = fromIntegral (fst (view dimsL state)) / 2
+        dx = posX - c -- 400
+        dy = posY - c -- 400
+        pos = (c - dy, c + dx) -- (900, 100)
+        -- pos = (posX, 999-posY)
+        dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
+        left = rotateV 0.5 dir
+        right = rotateV (-0.5) dir
+    
+        pos'sLeft = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' left))) [1..perimeter]
+        pos'sRight = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' right))) [1..perimeter]
+
+        pixelValuesLeft = LST.map ((!) vector . fromIx cols) pos'sLeft
+        pixelValuesRight = LST.map ((!) vector . fromIx cols) pos'sRight
+
+        wallDistanceLeft = case LST.findIndex (1 /=) pixelValuesLeft of
+            Nothing -> let infinity = read "Infinity"::Float in infinity
+            Just i -> let pos' = pos'sLeft !! i in distance pos $ tApp1 fromIntegral pos'
+        wallDistanceRight = case LST.findIndex (1 /=) pixelValuesRight of
+            Nothing -> let infinity = read "Infinity"::Float in infinity
+            Just i -> let pos' = pos'sRight !! i in distance pos $ tApp1 fromIntegral pos'
+
+renderDebug :: Picture -> KIState -> Picture
+renderDebug dungeon state = picture
+    where
+        bots' = bots state
+        players' = players state
+        playerMe = LST.head players'
+        picture = pictures $ viewDungeon playerMe dungeon : botsToPicturesDebug green 5 bots' LST.++ entitiesToPictures red 10 players'
+
+botsToPicturesDebug :: Color -> Float -> [Entity] -> [Picture]
+botsToPicturesDebug _ _ [] = []
+botsToPicturesDebug _color size (x:xs) = botPicture : botsToPicturesDebug _color size xs
+    where
+        pos = position x
+        dir = direction x
+        p = perimeter x
+        drawX = fst pos - fst midPlayground
+        drawY = snd pos - snd midPlayground
+        drawPos = (drawX, drawY)
+        body = GLOSS.translate drawX drawY $ color _color $ circleSolid size
+        left = color blue $ line [drawPos, tApp2 (+) drawPos $ tApp1 (*p) $ rotateV 0.5 dir] 
+        right = color blue $ line [drawPos, tApp2 (+) drawPos $ tApp1 (*p) $ rotateV (-0.5) dir]
+        botPicture = pictures [left, right, body]

@@ -84,3 +84,7 @@ rotate90Clockwise (x, y) = (y, x*(-1))
 
 rotate90CounterClockwise :: (Float, Float) -> (Float, Float)
 rotate90CounterClockwise (x, y) = (y*(-1), x)
+
+rotate :: Float -> (Float, Float) -> (Float, Float)
+rotate beta (x, y) = (cos beta * x - sin beta * y, cos beta * x - sin beta * y)
+
