@@ -110,12 +110,12 @@ render gs = do
         tileID = currentMap gs VS.! fromIx 1 (0,0)
 
         
-        
+    pic <- loadBMP "images/rechteck_gruen.bmp"
 
 
     let     
             rowLength = 20
-            getTile tileIndex = Blank -- dummy
+            getTile tileIndex = pic -- dummy
             tileList =  Prelude.map 
                             (\((x,y), tileIndex) -> translate (8 * int2Float x) (8 * int2Float y) $ getTile tileIndex) $ 
                         VS.toList $ 
