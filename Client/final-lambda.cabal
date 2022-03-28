@@ -1,0 +1,66 @@
+cabal-version:      2.4
+name:               final-lambda
+version:            0.1.0.0
+
+-- A short (one-line) description of the package.
+-- synopsis:
+
+-- A longer description of the package.
+-- description:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+
+-- The package author(s).
+-- author:
+
+-- An email address to which users can send suggestions, bug reports, and patches.
+-- maintainer:
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+executable final-lambda
+    main-is:          Main.hs
+
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    
+            base ^>=4.14.3.0
+        ,   containers >=0.6 && <0.7
+        ,   JuicyPixels >=3.3 && <3.4
+        ,   random >=1.2 && <1.3
+        ,   lens >=5.0 && <5.1
+        ,   normaldistribution == 1.1.0.3
+        ,   hgeometry == 0.14
+        ,   hgeometry-combinatorial == 0.14
+        ,   containers == 0.6.0.1
+        ,   gloss == 1.13.2.1
+        ,   gloss-export == 0.1.0.4
+        ,   GLFW-b == 1.4.8.4
+        ,   hip >= 1.5
+        ,   vector == 0.12.3.0
+        ,   utility-ht == 0.0.16
+        ,   Cabal
+        ,   gloss-game
+        ,   network == 3.1.2.7
+        ,   bytestring == 0.10.12.0
+        ,   binary == 0.8.9.0
+        ,   stm == 2.5.0.1
+        ,   old-time == 1.1.0.3
+        ,   storable-tuple
+    other-modules:
+        GraphicClient
+        LibMessage
+        LibServer
+
+    hs-source-dirs:   app
+    default-language: Haskell2010
