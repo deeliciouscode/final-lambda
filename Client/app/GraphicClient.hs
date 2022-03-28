@@ -98,7 +98,7 @@ runClient = do
 render :: GameState -> IO Picture
 render gs = do
    
-    let debugText = (show $ mapID gs) ++ (show $ position gs)
+    let debugText = show (mapID gs) ++ show (position gs)
         foo = show $ M.toList $ list_OtherPlayer gs
 
     return $ translate (-100) 0 $ scale 0.1 0.1 $ Text foo

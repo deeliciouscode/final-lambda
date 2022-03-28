@@ -1,7 +1,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
-module Server.LibMessage where
+module LibMessage where
 
 import Network.Socket(Socket)
 import Data.ByteString.Char8 ( ByteString )
@@ -28,7 +28,7 @@ instance Binary Socket where
     put = error "wrong wrapper use"
     get = error "wrong wrapper use"
 
-data Destionation =
+data Destination =
         Target SubDestination
     |   Source SubDestination
     |   ConnectionWrapper Socket
@@ -46,7 +46,7 @@ data SubDestination =
     deriving Show
     deriving Eq
 
-data Message =  Message [Destionation] Payload
+data Message =  Message [Destination] Payload
     deriving stock Generic
     deriving anyclass Binary
     deriving Show

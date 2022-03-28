@@ -27,7 +27,7 @@ import Control.Concurrent
     ( forkFinally, writeChan, swapMVar, readMVar, Chan, MVar )
 import LibMessage
     ( fromByteString,
-      Destionation(ConnectionWrapper),
+      Destination(ConnectionWrapper),
       Message(..),
       Payload(SetID) )
 import qualified Data.ByteString  as BS
