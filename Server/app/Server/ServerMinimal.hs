@@ -50,7 +50,7 @@ import Data.Binary
 import Dungeons.API
 
 import Data.Map as M
-
+import Data.Vector.Storable as VS (empty, Vector, fromList, toList)
 --import Data.Vector.Storable as VS
 ----------------------------------------------------------
 -- "Frei interpretiert" nach: 
@@ -87,7 +87,21 @@ server   = do
         list_connection <- readMVar connectionList
         print p
         case l of
-            [ConnectionWrapper conn] -> sendAll conn $ toByteString $ Message [Source Server] p
+            [ConnectionWrapper conn] -> do
+                
+                
+                sendAll conn $ toByteString $ Message [Source Server] p
+                -- (dims, vector) <- getDungeon 420
+                let vector' = VS.empty :: VS.Vector Int
+                    vectorTest :: VS.Vector Int
+                    vectorTest = VS.fromList $ replicate 200 0
+
+                   
+                    f = fromByteString $ toByteString $ Message [] (MapVector vectorTest)
+
+                --print f
+                return ()
+                --sendAll conn $ toByteString $ Message [Source Server] (WrapList $ replicate 200 0)
 
             [Source (Client id), Target (Map i)] -> do
                 let player = case M.lookup id map_playerList of
@@ -120,6 +134,7 @@ server   = do
     forkIO $ forever $ do
         input <- getLine
         print input
+        
         --writeChan messageQueue $ Message [Source Server] $ M input
     -- send 
     -- forkIO $ forever $ do
@@ -132,12 +147,14 @@ server   = do
         
     --     print "test"
 
+    {-
     forkIO $ forever $ do
         threadDelay $ round (1000000 / 60)
         (dims, vector, meta) <- getDungeon 420
-        print dims
+        -- print dims
         return ()
-
+    -}
+   
 
     ----------------------------------------------------------
     -- startet Server
