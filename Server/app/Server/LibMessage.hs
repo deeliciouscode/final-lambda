@@ -4,53 +4,55 @@
 module Server.LibMessage where
 
 import Network.Socket(Socket)
-import Data.ByteString.Char8 ( ByteString ) 
+import Data.ByteString.Char8 ( ByteString )
 import qualified Data.ByteString  as BS
 import Data.ByteString.Lazy (fromStrict, toStrict)
-import GHC.Generics ( Generic ) 
-import Data.Binary ( Binary(put, get), decode, encode )
+import GHC.Generics ( Generic )
+import Data.Binary ( Binary(put, get, putList), decode, encode, Word8 )
 
 import Data.Map as M ( Map )
+import Data.Vector.Storable as VS
+
 
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set
     pI_health :: (Float, Float), -- (-1,-1) als not set
     pI_position :: (Float, Float)
 }
-    deriving stock Generic 
+    deriving stock Generic
     deriving anyclass Binary
     deriving Show
     deriving Eq
 
 instance Binary Socket where
-    put = error "wrong wrapper use" 
-    get = error "wrong wrapper use" 
+    put = error "wrong wrapper use"
+    get = error "wrong wrapper use"
 
-data Destionation = 
-        Target SubDestination    
-    |   Source SubDestination   
-    |   ConnectionWrapper Socket   
-    deriving stock Generic 
+data Destionation =
+        Target SubDestination
+    |   Source SubDestination
+    |   ConnectionWrapper Socket
+    deriving stock Generic
     deriving anyclass Binary
     deriving Show
     deriving Eq
-data SubDestination = 
-        Client Int 
+data SubDestination =
+        Client Int
     |   Server
     |   Broadcast
     |   Map Int
-    deriving stock Generic 
+    deriving stock Generic
     deriving anyclass Binary
     deriving Show
     deriving Eq
 
-data Message =  Message [Destionation] Payload                                 
-    deriving stock Generic 
+data Message =  Message [Destionation] Payload
+    deriving stock Generic
     deriving anyclass Binary
     deriving Show
     deriving Eq
 
-data Payload = 
+data Payload =
                     SetID Int                                       -- initiale ID an Client
                 |   PositionUpdate (Float, Float)
                 |   MapBotPosition (Map Int (Float, Float))         -- Map from Bot ID to Bot position
@@ -64,13 +66,21 @@ data Payload =
                 |   GetMyInfo                                       -- Ruft stored PlayerInfo aus DataBase ab
                                                                     -- ebenfalls trigger für PlayerInformation
                 |   Null
-    deriving stock Generic 
+                |   MapVector (VS.Vector Int)
+    deriving stock Generic
     deriving anyclass Binary
     deriving Show
     deriving Eq
 
 
+instance (Storable a, Binary a) => Binary (VS.Vector a) where
+    put  = putList . toList
+    get = fromList <$> get
 
+foo :: VS.Vector Int -> IO ()
+foo vector = do
+    let list = toList vector
+    return ()
 
 
 fromByteString :: ByteString -> Message

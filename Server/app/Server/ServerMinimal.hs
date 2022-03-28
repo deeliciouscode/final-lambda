@@ -50,6 +50,8 @@ import Data.Binary
 import Dungeons.API
 
 import Data.Map as M
+
+--import Data.Vector.Storable as VS
 ----------------------------------------------------------
 -- "Frei interpretiert" nach: 
 -- https://hackage.haskell.org/package/network-3.1.2.7/docs/Network-Socket.html 
