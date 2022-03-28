@@ -1,6 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Quests where
-import DataStructures
+module Quests.Quests where
+import Quests.DataStructures
 import Data.Maybe
 import Data.Map as Map
 

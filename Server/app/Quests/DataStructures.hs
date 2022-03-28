@@ -1,4 +1,4 @@
-module DataStructures where
+module Quests.DataStructures where
 import Data.Map as Map
 
 -- each player has list of QuestInfo, representing the quests he has currently "assigned" to him
