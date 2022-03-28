@@ -27,10 +27,10 @@ import Codec.Picture.Png.Internal.Export
 import Graphics.Gloss.Data.Vector
 
 
-makeKIState :: (Point, [(Float, (Float,Float))]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
+makeKIState :: (Point, [(Float, (Float,Float))]) -> (Int, Int) -> VS.Vector (Int) -> KIState
 makeKIState (playerPos, botSpawns) dims vector = State {
                                         dims = dims,
-                                        substrate = transformToIntVec vector,
+                                        substrate = vector,
                                         bots = genBots nBots botSpawns,
                                         players = dummyPlayers playerPos
                                     }
@@ -104,7 +104,7 @@ genBot i circles = Bot {
 -- simulateKI :: IO ()
 -- simulateKI = simulate window background fps initialKIState (render undefined) update
 
-playWithKI :: (Point, [(Float, (Float,Float))]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO ()
+playWithKI :: (Point, [(Float, (Float,Float))]) -> ((Int, Int), VS.Vector Int) -> Picture -> IO ()
 -- playWithKI (img, dims, flatImage) = play window background fps (makeKIState dims flatImage) render handleKeys moveAgents
 playWithKI meta (dims, vector) dungeon = play window background fps (makeKIState meta dims vector) (render dungeon) handleKeys moveAgents
 
