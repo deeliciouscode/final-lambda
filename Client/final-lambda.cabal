@@ -58,6 +58,7 @@ executable final-lambda
         ,   old-time == 1.1.0.3
         ,   storable-tuple
         ,   serialise
+        ,   cereal
     other-modules:
         GraphicClient
         LibMessage

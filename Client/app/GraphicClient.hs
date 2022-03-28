@@ -80,14 +80,14 @@ runClient = do
 
     forkIO $ runTCPClient "127.0.0.1" "3000" $ \socket -> do
         void $ forkIO $ forever $ do
-            msg <- recv socket 1024
+            msg <- recv socket 100000000000000
             --print "foo"
-            --print $ "test" ++ show (fromByteString  msg)
+            print $ "test" ++ show (fromByteString  msg)
 
-            let m =     fromStrict msg
-                a =  (deserialise $ fromStrict msg) :: SerialiseTest-- :: [Int]
+            --let m =     fromStrict msg
+                --a =  (deserialise $ fromStrict msg) :: SerialiseTest-- :: [Int]
                 --b = deserialise <$> fromStrict msg
-            print a
+            --print a
             --atomically $ writeTChan serverMessages $ fromByteString msg
 
         void $ forever $ do

@@ -17,6 +17,8 @@ import Codec.Serialise
 import Codec.Serialise.Encoding (Encoding, encodeListLen, encodeWord)
 import Codec.Serialise.Decoding (Decoder, decodeListLen, decodeWord)
 
+--import Data.Serialize
+
 data SerialiseTest = 
         L [Int] 
     |   R {val1 :: Int, val2 :: [Int]}

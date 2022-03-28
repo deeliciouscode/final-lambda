@@ -90,9 +90,9 @@ runTCPServer host port mV messageQueue = withSocketsDo $ do
                             --sendAll conn $ serialise (L [])
 
                             
-                            sendAll conn $ toStrict $ serialise $ L $ replicate 1000000 0
-                            sendAll conn $ toStrict $ serialise $ L $l
-                            --sendAll conn $ toStrict $ serialise $ L l
+                            --sendAll conn $ toStrict $ serialise $ L $ replicate 1000000 0
+                            --sendAll conn $ toStrict $ serialise $ L $l
+                            sendAll conn $  toByteString $  Message [] (WrapList $ replicate 1000000 0)
                             writeChan messageQueue $ Message [ConnectionWrapper conn] $ SetID id
                             forkFinally (forever $ do
                                 msg <- recv conn 1024
