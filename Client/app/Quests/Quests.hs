@@ -52,9 +52,7 @@ getAvailableAction' pq c =
 hasQuestFromContractor :: ActiveQuests -> String -> Bool
 hasQuestFromContractor [] c = False
 hasQuestFromContractor (QuestInfo {index, contractor, quest, state}:xs) c = 
-    if contractor == c
-        then True
-        else hasQuestFromContractor xs c
+    contractor == c || hasQuestFromContractor xs c 
 ---------------------------------------------------------------------------------------
 
 -- replace the players current quest (in regards to the given contractor) with the next one in the questline
