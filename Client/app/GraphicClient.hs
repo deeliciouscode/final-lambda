@@ -6,6 +6,7 @@ Generelles ToDo:
 -}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant if" #-}
+{-# HLINT ignore "Use bimap" #-}
 module GraphicClient where
 
 import LibMessage
@@ -25,8 +26,12 @@ import Control.Concurrent.STM (tryReadTChan, newTChan, newTChanIO, TChan, writeT
 import Data.Maybe (isNothing)
 import Data.Set (Set, empty, insert, delete, elems)
 import Data.Set as S
-
+import Data.Vector.Storable as VS (Vector, empty, (!), imap, fromList, Storable, singleton, toList)
 import Data.Map as M
+import Graphics.Image.Interface (fromIx, toIx)
+
+import Foreign.Storable.Tuple
+import GHC.Float (int2Float)
 
 data GameState = GS {
     serverMessages :: TChan Message,
@@ -37,7 +42,8 @@ data GameState = GS {
     list_key :: Set Char,
     position :: (Float, Float),
     list_Tile :: Map String Picture,
-    mapID :: Int
+    mapID :: Int,
+    currentMap :: VS.Vector Int
 
     } 
 
@@ -66,6 +72,7 @@ runClient = do
             (0,0)
             (M.fromList [("player", playerTile), ("op", other_Player_Tile)])
             (-1)
+            (VS.empty)
 
     forkIO $ runTCPClient "127.0.0.1" "3000" $ \socket -> do
         void $ forkIO $ forever $ do
@@ -97,12 +104,31 @@ runClient = do
 
 render :: GameState -> IO Picture
 render gs = do
-   
-    let debugText = show (mapID gs) ++ show (position gs)
-        foo = show $ M.toList $ list_OtherPlayer gs
+    print ""
 
-    return $ translate (-100) 0 $ scale 0.1 0.1 $ Text foo
-    --return $ pictures $ trans_player : concat tt --l_tile
+    let 
+        tileID = currentMap gs VS.! fromIx 1 (0,0)
+
+        
+        
+
+
+    let     
+            rowLength = 20
+            getTile tileIndex = Blank -- dummy
+            tileList =  Prelude.map 
+                            (\((x,y), tileIndex) -> translate (8 * int2Float x) (8 * int2Float y) $ getTile tileIndex) $ 
+                        VS.toList $ 
+                            VS.imap 
+                                (\index value -> (toIx rowLength index ,value)) $ 
+                            currentMap gs
+            picture = pictures tileList
+
+            debugText = show (mapID gs) ++ show (position gs)
+            foo = show $ M.toList $ list_OtherPlayer gs
+
+    -- return $ translate (-100) 0 $ scale 0.1 0.1 $ Text foo
+    return picture
 
 
 handleInput :: Event -> GameState -> IO GameState
@@ -197,6 +223,7 @@ onUpdate delta _gameState =
                                     return gs {list_OtherPlayer = updatedPlayer}-- {list_OtherPlayer = M.insert i updatedPlayer $ list_OtherPlayer gs}
                                     
                                 Message [Source Server] (PlayerInformation m) -> return gs {list_OtherPlayer = m}
+                                Message [Source Server] (MapVector vector) -> return gs {currentMap = vector}
                                 _ -> return gs
 
 

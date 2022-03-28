@@ -56,6 +56,7 @@ executable final-lambda
         ,   binary == 0.8.9.0
         ,   stm == 2.5.0.1
         ,   old-time == 1.1.0.3
+        ,   storable-tuple
     other-modules:
         GraphicClient
         LibMessage
