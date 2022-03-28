@@ -4,7 +4,7 @@ import Data.Map as Map
 -- each player has list of QuestInfo, representing the quests he has currently "assigned" to him
 data QuestInfo = QuestInfo
     { index :: Int
-    , contractor :: Contractor
+    , contractor :: String
     , quest :: Quest
     , state :: QuestState
     }
@@ -42,13 +42,16 @@ data QuestReward = Item | StatPoint Int deriving Show
 
 data Action = BeginQuestline | Accept | MarkAsDone | KeepGoing deriving Show
 
-type PlayerQuests = [QuestInfo]
+type ActiveQuests = [QuestInfo]
 
 data Item = Equipment | Weapon | QuestItem | Pebble
 
 -- type StatPoint = Int
 
-type Contractor = String
+data Contractor = Contractor
+    { name :: String
+    , questline :: Questline
+    }
 
 type Questline = [Quest]
 
