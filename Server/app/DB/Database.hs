@@ -1,20 +1,18 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
 module DB.Database where
-import Control.Exception
-import Database.HDBC
-import Database.HDBC.PostgreSQL (connectPostgreSQL)
-import Database.HDBC.Statement 
+import Database.PostgreSQL.Simple
+
 
 
 main = do
-
+    putStrLn "String"
     -- con <- connectPostgreSQL "host=localhost dbname=postgres user=postgres password=fun4Sql"
     -- line <- quickQuery' con "select * from accounts" [] 
     -- mapM_ print line
     
     -- disconnect con
-    insertTest
+    
 
 -- executeQuerry :: (String, [SqlValue]) -> IO [[SqlValue]]
 -- executeQuerry querry = do
