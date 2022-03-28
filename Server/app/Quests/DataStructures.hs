@@ -72,7 +72,7 @@ data Action = BeginQuestline | Accept | MarkAsDone | KeepGoing
 
 type ActiveQuests = [QuestInfo]
 
-data Item = Equipment | Weapon | QuestItem | Pebble
+data Item = Equipment | Weapon | QuestItem
     deriving Show
     deriving Eq
     deriving stock Generic

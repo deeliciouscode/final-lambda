@@ -13,19 +13,34 @@ isQuestFinished :: QuestInfo -> Bool
 isQuestFinished QuestInfo {index, contractor, quest, state} = state == Done
 
 --TODO how should this conversation be handeld?
-interactWithContractor :: ActiveQuests -> String -> Questline -> IO ActiveQuests
+interactWithContractor :: ActiveQuests -> String -> Questline -> ActiveQuests
 interactWithContractor pq c ql = 
     let action = getAvailableAction c pq
         currentPlayerQuest = getQuestInfoByContractor pq c
         otherQuests = filterQuests pq c
         dialogue = getDialogue currentPlayerQuest
+        isKnown = hasQuestFromContractor pq c
     in if isJust currentPlayerQuest
         then case action of
-            KeepGoing -> placeholder dialogue pq
-            BeginQuestline -> placeholder dialogue $ acceptQuest pq 1 c $ fromJust $ getNextFromQl ql 0
-            Accept -> placeholder dialogue $ progressQuestline pq c ql
-            MarkAsDone ->  placeholder dialogue $ setQuestDone (fromJust currentPlayerQuest) : otherQuests -- TODO: how can reward be dished out????
-        else placeholder ("Keep", "On") pq
+            KeepGoing -> pq
+            BeginQuestline -> acceptQuest pq 1 c $ fromJust $ getNextFromQl ql 0
+            Accept -> progressQuestline pq c ql
+            MarkAsDone -> setQuestDone (fromJust currentPlayerQuest) : otherQuests -- TODO: how can reward be dished out????
+        else pq
+
+-- interactWithContractor :: ActiveQuests -> String -> Questline -> IO ActiveQuests
+-- interactWithContractor pq c ql = 
+--     let action = getAvailableAction c pq
+--         currentPlayerQuest = getQuestInfoByContractor pq c
+--         otherQuests = filterQuests pq c
+--         dialogue = getDialogue currentPlayerQuest
+--     in if isJust currentPlayerQuest
+--         then case action of
+--             KeepGoing -> placeholder dialogue pq
+--             BeginQuestline -> placeholder dialogue $ acceptQuest pq 1 c $ fromJust $ getNextFromQl ql 0
+--             Accept -> placeholder dialogue $ progressQuestline pq c ql
+--             MarkAsDone ->  placeholder dialogue $ setQuestDone (fromJust currentPlayerQuest) : otherQuests -- TODO: how can reward be dished out????
+--         else placeholder ("Keep", "On") pq
 
 -- todo: look at formjust
 getDialogue :: Maybe QuestInfo -> (String, String)
@@ -37,6 +52,7 @@ helper' Dialogue {proposition, response, end} = (proposition, end)
 
 -- the contractor should evaluate if the player has no quest from him, is in the works of completing a quest for him or is eligable for a new quest
 getAvailableAction :: String -> ActiveQuests -> Action
+-- getAvailableAction c [] = BeginQuestline
 getAvailableAction c pq@(QuestInfo {index, contractor, quest, state}:xs) = 
     if hasQuestFromContractor pq c
         then getAvailableAction' pq c
@@ -52,9 +68,7 @@ getAvailableAction' pq c =
 hasQuestFromContractor :: ActiveQuests -> String -> Bool
 hasQuestFromContractor [] c = False
 hasQuestFromContractor (QuestInfo {index, contractor, quest, state}:xs) c = 
-    if contractor == c
-        then True
-        else hasQuestFromContractor xs c
+    contractor == c || hasQuestFromContractor xs c
 ---------------------------------------------------------------------------------------
 
 -- replace the players current quest (in regards to the given contractor) with the next one in the questline
