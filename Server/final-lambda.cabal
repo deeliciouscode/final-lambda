@@ -74,6 +74,7 @@ executable final-lambda
         Server.LibMessage
         Server.LibServer
         Helpers
-
+        Quests.Quests
+        Quests.DataStructures
     hs-source-dirs:   app
     default-language: Haskell2010
