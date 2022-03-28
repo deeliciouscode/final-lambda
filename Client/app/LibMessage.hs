@@ -77,10 +77,6 @@ instance (Storable a, Binary a) => Binary (VS.Vector a) where
     put  = putList . toList
     get = fromList <$> get
 
-foo :: VS.Vector Int -> IO ()
-foo vector = do
-    let list = toList vector
-    return ()
 
 
 fromByteString :: ByteString -> Message
