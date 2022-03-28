@@ -1,6 +1,7 @@
 module KI.Structures where
 
 import Data.Vector.Storable
+import Server.LibMessage (PlayerInfo)
 data Entity = Bot  { 
                   stamina :: Int, 
                   style :: String,
@@ -14,21 +15,22 @@ data Entity = Bot  {
                   perimeter :: Float,
                   flocking :: Bool
                 } 
-                | Player { 
-                  stamina :: Int,
-                  strength :: Int,
-                  position :: (Float, Float),
-                  direction :: (Float, Float),
-                  velocity :: Float
-                }
     deriving (Show)
 
 
 data KIState = State { 
                 dims :: (Int, Int),
                 substrate :: Vector Int,
-                bots :: [Entity],
-                players :: [Entity]
+                bots :: [Entity]
+                -- players :: [Entity]
+              }
+    deriving (Show)
+
+data KIStateDebug = StateD { 
+                dimsD :: (Int, Int),
+                substrateD :: Vector Int,
+                botsD :: [Entity],
+                playersD :: [PlayerInfo]
               }
     deriving (Show)
 

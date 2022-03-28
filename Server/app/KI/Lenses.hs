@@ -7,6 +7,7 @@ import Control.Lens
 import Data.Maybe.HT
 import Distribution.Utils.Generic
 import Data.Vector.Storable
+import Server.LibMessage
 
 -- https://hackage.haskell.org/package/lens-tutorial-1.0.4/docs/Control-Lens-Tutorial.html#g:2
 -- https://www.youtube.com/watch?v=3kduOmZ2Wxw
@@ -29,21 +30,21 @@ testBot = Bot {
             flocking = True
         }
 
-testPlayer :: Entity
-testPlayer = Player {
-            stamina = 10,
-            strength = 30,
-            position = (80,180),
-            direction = (90,190),
-            velocity = 40
-        }
+-- testPlayer :: Entity
+-- testPlayer = Player {
+--             stamina = 10,
+--             strength = 30,
+--             position = (80,180),
+--             direction = (90,190),
+--             velocity = 40
+--         }
 
 testState :: KIState
 testState = State {
     dims = (0,0),
     substrate = testPlayground,
-    bots = [testBot, testBot, testBot, testBot, testBot],
-    players = [testPlayer, testPlayer, testPlayer]
+    bots = [testBot, testBot, testBot, testBot, testBot]
+    -- players = [testPlayer, testPlayer, testPlayer]
 }
 
 staminaL :: Lens' Entity Int
@@ -139,13 +140,13 @@ movementPerimeterL = lens perimeter' (\(pos, dir, hb, v, _) newPerimeter -> (pos
         perimeter' (_, _, _, _, per) = per
 
 
-playerMovementL :: Lens' Entity PlayerMovementAttr
-playerMovementL = lens movementAttrs (\entity newMovementAttrs -> entity { position = fstOf3 newMovementAttrs,
-                                                                            direction = sndOf3 newMovementAttrs,
-                                                                            velocity = trdOf3 newMovementAttrs })
+playerMovementL :: Lens' PlayerInfo PlayerMovementAttr
+playerMovementL = lens movementAttrs (\entity newMovementAttrs -> entity { pI_position = fstOf3 newMovementAttrs,
+                                                                            pI_direction = sndOf3 newMovementAttrs,
+                                                                            pI_velocity = trdOf3 newMovementAttrs })
     where
-        movementAttrs :: Entity -> PlayerMovementAttr
-        movementAttrs entity = (position entity, direction entity, velocity entity)
+        movementAttrs :: PlayerInfo -> PlayerMovementAttr
+        movementAttrs player = (pI_position player, pI_direction player, pI_velocity player)
 
 --------------- Flocking ---------------
 flockingL :: Lens' Entity Bool
@@ -186,8 +187,14 @@ dimsL = lens dims (\state newDims -> state { dims = newDims })
 
 --------------
 
-playersL :: Lens' KIState [Entity]
-playersL = lens players (\state newPlayers -> state { players = newPlayers })
+playersDebugL :: Lens' KIStateDebug [PlayerInfo]
+playersDebugL = lens playersD (\state newPlayers -> state { playersD = newPlayers })
+
+directionDebugL :: Lens' PlayerInfo (Float, Float)
+directionDebugL = lens pI_direction (\entity newDirection -> entity { pI_direction = newDirection })
+
+playerPositionL :: Lens' PlayerInfo (Float, Float)
+playerPositionL = lens pI_position (\entity newPosition -> entity { pI_position = newPosition })
 
 --------------
 

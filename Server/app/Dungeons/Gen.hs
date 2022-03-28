@@ -54,7 +54,7 @@ centers seed sideLen = zip xCors yCors
                 yCors = nRandoms nCircles (sideLen * 0.2) (sideLen * 0.8) (mkStdGen (seed+1))
 
 circles :: [(Float, (Float, Float))]
-circles = zip (radii seed) (centers seed sideLen)
+circles = zip (radii testSeed) (centers testSeed sideLen)
 
 testCircles :: Circles
 testCircles = [(26.77658,(196.68921,236.81659)),(30.364641,(339.12732,210.95541)),(33.663124,(227.78206,344.70084)),(35.233494,(275.62262,281.27032)),(38.001255,(257.7942,301.88495)),(39.244896,(288.4538,203.14005))]
@@ -88,15 +88,15 @@ driveOut circles i = LIST.take i circles ++ (circle' : LIST.drop (i+1) circles)
 driveOut' :: Circle -> Circle
 driveOut' (r, (x,y)) = (r, (newX, newY))
                 where
-                    dx    = x - midX
-                    dy    = y - midY
+                    dx    = x - midDungeon 
+                    dy    = y - midDungeon 
                     hypo  = sqrt (dx**2 + dy**2)
                     alpha = asin (dy / hypo)
                     newDx = cos alpha * hypo * 1.1
                     newDy = sin alpha * hypo * 1.1
-                    newX  = if dx < 0 then midX + newDx * (-1)
-                            else midX + newDx
-                    newY  = midY + newDy
+                    newX  = if dx < 0 then midDungeon + newDx * (-1)
+                            else midDungeon + newDx
+                    newY  = midDungeon + newDy
 
 
 ------------------------------- Flocking -------------------------------    
@@ -139,7 +139,7 @@ applyIteration = LIST.map applyVectors
 
 applyVectors :: Agents -> Agent
 applyVectors [] = (0, (0,0), (0,0), 0)
-applyVectors (first:rest) = moveAgent $ normalizeAgent velocity $ foldIntoOne first rest
+applyVectors (first:rest) = moveAgent $ normalizeAgent genVelocity $ foldIntoOne first rest
 
 foldIntoOne :: Agent -> Agents -> Agent
 foldIntoOne agent [] = agent
@@ -330,7 +330,7 @@ circlesToPictures [] = []
 circlesToPictures ((r, (x,y)):xs) = circle : circlesToPictures xs
                     where
                         ballColor = white
-                        circle = GLOSS.translate (-midX+x) (-midY+y) $ color ballColor $ circleSolid r
+                        circle = GLOSS.translate (-midDungeon+x) (-midDungeon+y) $ color ballColor $ circleSolid r
 
 treeToTunnels :: Triangulation Float Float -> Tree.Tree (GEO.Point 2 Float EXT.:+ Float) -> [Picture]
 treeToTunnels triangles tree =
@@ -356,7 +356,7 @@ makeLines triangles point (t:ts) = picture' : makeLines triangles point ts
                     additionalPaths = additionalTunnel triangles point $ mkStdGen $ round $ x*y
                     pictures' = LIST.map (color white . polygon) (paths ++ additionalPaths)
                     picture = pictures pictures'
-                    picture' = GLOSS.translate (-midX) (-midY) picture
+                    picture' = GLOSS.translate (-midDungeon) (-midDungeon) picture
 
 additionalTunnel :: Triangulation Float Float -> GEO.Point 2 Float EXT.:+ Float -> StdGen -> [Path]
 additionalTunnel triangles point gen = tunnelOrEmpty

@@ -2,17 +2,18 @@ module Dungeons.API where
 
 import Dungeons.Gen
 import Dungeons.Transform
+import Dungeons.Config
 import Graphics.Gloss.Game
 import Graphics.Image
 import Data.Vector.Storable as VS
 import Graphics.Gloss.Export
 import Codec.Picture.Png.Internal.Export
 import Text.Printf
+import Dungeons.Structures
 
 
-getDungeon :: Int -> IO ((Int, Int), VS.Vector Int)
+getDungeon :: Int -> IO ((Int, Int), VS.Vector Int, ((Float, Float), Circles))
 getDungeon seed = do
-    let sideLen = 1000
     (pic, entry, botPositions) <- generateDungeon seed sideLen
 
     let imagePath = printf "images/dungeon%d.png" seed
@@ -22,4 +23,4 @@ getDungeon seed = do
     cluster <- readImageRGB VS imagePath
     -- let dungeonImage = png "images/gloss_new.png"
     (dims, vector) <- transformToVector cluster
-    return (dims, vector)
+    return (dims, vector, meta)

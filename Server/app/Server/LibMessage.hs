@@ -17,7 +17,9 @@ import Data.Vector.Storable as VS
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set
     pI_health :: (Float, Float), -- (-1,-1) als not set
-    pI_position :: (Float, Float)
+    pI_position :: (Float, Float),
+    pI_direction :: (Float, Float),
+    pI_velocity :: Float
 }
     deriving stock Generic
     deriving anyclass Binary

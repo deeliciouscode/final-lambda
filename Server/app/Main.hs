@@ -4,6 +4,7 @@ import Dungeons.Gen
 import Dungeons.Config
 import Dungeons.Transform
 import KI.KI
+import KI.Play
 import KI.Debug
 import Graphics.Gloss
 import Graphics.Gloss.Game
@@ -11,18 +12,6 @@ import GHC.Real (Integral(toInteger))
 import Graphics.Image
 import Prelude as P
 import Server.ServerMinimal
-
-
-width, height, offset :: Int
-width = round sideLen
-height = round sideLen
-offset = 0
-
-window :: Display
-window = InWindow "Dungeon" (width, height) (offset, offset)
-
-background :: Color
-background = black
 
 main :: IO ()
 main = do
@@ -46,5 +35,6 @@ main = do
     -- let dungeon = png "images/gloss_new.png"
     -- debugKI meta map dungeon
 
-    server
+    playWithKI 
+    -- server
 

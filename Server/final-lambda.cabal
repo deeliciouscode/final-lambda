@@ -65,9 +65,11 @@ executable final-lambda
         Dungeons.Structures
         KI.Config
         KI.KI
+        KI.Gen
         KI.Lenses
         KI.Structures
         KI.Debug
+        KI.Play
         KI.API
         Server.ServerMinimal   
         Server.Game     
