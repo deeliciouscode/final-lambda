@@ -56,6 +56,8 @@ executable final-lambda
         ,   binary == 0.8.9.0
         ,   stm == 2.5.0.1
         ,   old-time == 1.1.0.3
+        ,   HDBC
+        ,   HDBC-postgres
     other-modules:
         Dungeons.Gen 
         Dungeons.NaiveMST 
@@ -73,6 +75,7 @@ executable final-lambda
         Server.Game     
         Server.LibMessage
         Server.LibServer
+        DB.Database
         Helpers
 
     hs-source-dirs:   app
