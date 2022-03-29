@@ -78,7 +78,7 @@ runClient = do
             (0,0)
             (M.fromList [("player", playerTile), ("op", other_Player_Tile)])
             (-1)
-            (Nothing)
+            Nothing
 
     forkIO $ runTCPClient "127.0.0.1" "3000" $ \socket -> do
         void $ forkIO $ forever $ do
@@ -141,11 +141,17 @@ render gs = do
                             1 -> pic
                             _ -> Blank
                          ) generateList 
+
+                    -- partialImage = getPartialImage (0,0) 100
+                    -- generateList = VS.toList $ VS.imap (\index value -> (toIx rowLength index ,value)) v
+                    -- generatePicList = Prelude.map (\((x,y), value) -> pic) generateList 
                 --pictures $ VS.imap (\index x -> pic) $ VS.toList v
                 
             foo Nothing = pic
     return  $ foo $ currentMap gs
 
+-- getPartialImage :: PointI -> Int -> VS.Vector Int -> VS.Vector Int
+-- getPartialImage lowerLeft sideLen vec = 
 
 handleInput :: Event -> GameState -> IO GameState
 handleInput ev@(EventKey (Char '+') Down Modifiers {shift = _shift, ctrl = _ctrl, alt = _alt} (xC, yC)) gameState= do
