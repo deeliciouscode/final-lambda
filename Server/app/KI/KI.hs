@@ -21,6 +21,24 @@ import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
 import Graphics.Gloss.Data.Vector
 import Server.LibMessage
+import Distribution.Utils.Generic
+
+
+------------------------------------- Damage -------------------------------------
+
+applyDamage :: Float -> PlayerInfo -> Int -> KIState -> KIState
+applyDamage damage player _botID state = state''
+    where
+        bots = view botsL state
+        state' = over (botsL . traverse . combatL) (\cmbt -> if fstOf3 cmbt == _botID then applyDamage' damage cmbt else cmbt) state 
+
+        state'' = set botsL (LST.filter ((<=) 1 . strength) $ view botsL state') state'
+        
+        applyDamage' :: Float -> CombatAttr -> CombatAttr
+        applyDamage' damage (id, stam, str) = (id, stam*0.95, str - damage/stam) -- think of good formula
+        
+
+------------------------------------- Movement -------------------------------------
 
 moveAgents :: [PlayerInfo] -> Float -> KIState -> KIState
 moveAgents players seconds state = newState'

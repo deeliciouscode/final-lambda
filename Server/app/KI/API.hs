@@ -20,3 +20,6 @@ initKI seed botSpawns vector = State {
 
 updateKI :: [PlayerInfo] -> Float -> KIState -> KIState
 updateKI players seconds state = moveAgents players seconds state
+
+attackKI :: Float -> PlayerInfo -> Int -> KIState -> KIState
+attackKI damage player botID state = applyDamage damage player botID state

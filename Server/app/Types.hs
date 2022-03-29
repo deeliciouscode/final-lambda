@@ -12,5 +12,7 @@ type FlockingFunction = (Agent -> Agents -> Agent)
 
 --                    pos    dir     hb      vel    per
 type MovementAttr = (PointF, PointF, PointF, Float, Float)
+--                 id   stam   stre   
+type CombatAttr = (Int, Float, Float)
 --                         pos     dir     vel 
 type PlayerMovementAttr = (PointF, PointF, Float)

@@ -17,6 +17,7 @@ genBots n seed circles = genBot n seed circles : genBots (n-1) seed circles
 
 genBot :: Int -> Int -> [(Float, PointF)] -> Entity
 genBot i seed circles = Bot {
+        botID = 1000 + i,
         stamina = stamina',
         style = style',
         perimeter = perimeter',
@@ -37,7 +38,7 @@ genBot i seed circles = Bot {
         spread = (radii !! iCenter) / 2
         -- spread = 1
 
-        stamina' = randomNumber (seed - i) 20 100 :: Int
+        stamina' = randomNumber (seed - i) 20 100 :: Float
         encodedStyle = randomNumber (seed - i*2) 0 2 :: Int
         style'
           | encodedStyle == 0 = "aggresive"
@@ -47,10 +48,10 @@ genBot i seed circles = Bot {
         -- perimeter' = randomNumber (seed - i*3) 50 80 :: Float
         perimeter' = 100 :: Float
 
-        strength' = randomNumber (seed - i*4) 3 10 :: Int
-        awareness' = randomNumber (seed - i*6) 3 10 :: Int
+        strength' = randomNumber (seed - i*4) 3 10 :: Float
+        awareness' = randomNumber (seed - i*6) 3 10 :: Float
         -- reach' = randomNumber (seed - i*7) 5 10 :: Int
-        reach' = 10 :: Int
+        reach' = 10 :: Float
 
         position'XDelta = randomNumber (seed - i*8393) (-spread) spread
         position'YDelta = randomNumber (seed - i*82933) (-spread) spread

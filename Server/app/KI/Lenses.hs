@@ -18,6 +18,7 @@ testPlayground = empty
 
 testBot :: Entity
 testBot = Bot {
+            botID = 1000,
             stamina = 1,
             style = "aggresive",
             perimeter = 2,
@@ -38,7 +39,10 @@ testState = State {
     bots = [testBot, testBot, testBot, testBot, testBot]
 }
 
-staminaL :: Lens' Entity Int
+botIDL :: Lens' Entity Int
+botIDL = lens botID (\entity newID -> entity { botID = newID })
+
+staminaL :: Lens' Entity Float
 staminaL = lens stamina (\entity newStamina -> entity { stamina = newStamina })
 
 styleL :: Lens' Entity String
@@ -47,16 +51,16 @@ styleL = lens style (\bot newStyle -> bot { style = newStyle })
 perimeterL :: Lens' Entity Float
 perimeterL = lens perimeter (\bot newPerimeter -> bot { perimeter = newPerimeter })
 
-strengthL :: Lens' Entity Int
+strengthL :: Lens' Entity Float
 strengthL = lens strength (\entity newStrength -> entity { strength = newStrength })
 
 velocityL :: Lens' Entity Float
-velocityL = lens velocity (\entity newVelocity-> entity { velocity = newVelocity })
+velocityL = lens velocity (\entity newVelocity -> entity { velocity = newVelocity })
 
-awarenessL :: Lens' Entity Int
+awarenessL :: Lens' Entity Float
 awarenessL = lens awareness (\bot newAwareness -> bot { awareness = newAwareness })
 
-reachL :: Lens' Entity Int
+reachL :: Lens' Entity Float
 reachL = lens reach (\bot newReach -> bot { reach = newReach })
 
 --------------- Homebase ---------------
@@ -139,6 +143,18 @@ playerMovementL = lens movementAttrs (\entity newMovementAttrs -> entity { pI_po
         movementAttrs :: PlayerInfo -> PlayerMovementAttr
         movementAttrs player = (pI_position player, pI_direction player, pI_velocity player)
 
+
+--------------- Combat ---------------
+
+combatL :: Lens' Entity CombatAttr
+combatL = lens combatAttrs (\entity newCombatAttrs -> entity {  botID = fstOf3 newCombatAttrs,
+                                                                stamina = sndOf3 newCombatAttrs,
+                                                                strength = trdOf3 newCombatAttrs })
+    where
+        combatAttrs :: Entity -> CombatAttr
+        combatAttrs entity = (botID entity, stamina entity, strength entity)
+
+
 --------------- Flocking ---------------
 flockingL :: Lens' Entity Bool
 flockingL = lens flocking (\bot newFlocking -> bot { flocking = newFlocking })
@@ -158,18 +174,6 @@ flockingL = lens flocking (\bot newFlocking -> bot { flocking = newFlocking })
 
 botsL :: Lens' KIState Entities
 botsL = lens bots (\state newBots -> state { bots = newBots })
-
--- replaces a botAttribute
--- replaceBotAttrAt :: Int -> a -> Bot -> Maybe Bot
--- replaceBotAttrAt i newVal bot = newSubstrate
---         where 
---             attr = view botsL bot 
---             newSubstrate = case substate ^? ix c of 
---                 Nothing -> Nothing
---                 Just column ->  
---                     case column ^? ix r of
---                         Nothing -> Nothing
---                         Just row -> Just $ substate & ix c .~ (column & (ix r .~ newVal))
 
 --------------
 
