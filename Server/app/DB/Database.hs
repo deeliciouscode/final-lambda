@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NamedFieldPuns #-}
 module DB.Database where
 import Database.PostgreSQL.Simple
 import GHC.Int
@@ -14,13 +15,14 @@ import qualified Data.Text as T
 import Control.Monad
 import Database.PostgreSQL.Simple.ToField
 import Codec.Picture.Metadata (Value(String))
+import Quests.DataStructures
 -- import Quests.DataStructures (QuestInfo(contractor))
 
 
 
 
 
-main :: IO C
+main :: IO Contractor 
 main = do
   print "Hi"
   a <- getContractorById 1
@@ -44,8 +46,9 @@ getConnection = connect defaultConnectInfo
 --   [Only i] <- query_ conn "select * from user_" 
 --   return i
 
-emptyC :: C -> C
-emptyC c = C 0 0
+emptyC :: C -> Contractor
+-- emptyC C {DB.Database.id, name, ql} = Contractor id name ql
+emptyC C {DB.Database.id, DB.Database.name, ql} = Contractor id name []
 
 
 test :: IO Int64
@@ -91,8 +94,8 @@ getQuestlineByContractor c_id = do
 
 -------------------------------adapter types-------------------------------------
 
-data C = C { id:: Int, ql :: Int} deriving (Show, Generic, FromRow)
-data User = User { name :: String, age :: Int } deriving (Show, Generic, FromRow)
+data C = C { id:: Int, name :: String, ql :: Int} deriving (Show, Generic, FromRow)
+data User = User { u_name :: String, age :: Int } deriving (Show, Generic, FromRow)
 -- getContractorById :: IO ()
 -- getContractorById = do 
 --   connection <- connect defaultConnectInfo

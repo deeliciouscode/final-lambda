@@ -81,9 +81,10 @@ data Item = Equipment | Weapon | QuestItem
 -- type StatPoint = Int
 
 data Contractor = Contractor
-    { name :: String
+    { id :: Int
+    , name :: String
     , questline :: Questline
-    }
+    } deriving Show
 
 type Questline = [Quest]
 
