@@ -29,7 +29,7 @@ import Server.LibMessage
     ( fromByteString,
       Destionation(ConnectionWrapper),
       Message(..),
-      Payload(SetID), SerialiseTest (..) )
+      Payload(SetID))
 import qualified Data.ByteString  as BS
 import Control.Monad ( forever, unless )
 import Network.Socket.ByteString ( recv , sendAll)
@@ -38,6 +38,9 @@ import Server.LibMessage(toByteString, Payload (..))
 
 import Codec.Serialise
 import Data.ByteString.Lazy (toStrict)
+
+bufferSize :: Int
+bufferSize = 10000000
 
 runTCPServer :: Maybe HostName -> ServiceName -> MVar [Socket] -> Chan Message -> IO a2
 runTCPServer host port mV messageQueue = withSocketsDo $ do
@@ -56,7 +59,7 @@ runTCPServer host port mV messageQueue = withSocketsDo $ do
             setSocketOption sock ReuseAddr 1
             withFdSocket sock setCloseOnExecIfNeeded
             bind sock $ addrAddress addr
-            listen sock 1024
+            listen sock bufferSize
             return sock
 
         loop sock id =  do
@@ -65,37 +68,10 @@ runTCPServer host port mV messageQueue = withSocketsDo $ do
                             connections <- readMVar mV
                             swapMVar mV $ connections ++ [conn]
 
-                            --sendAll conn $ toByteString $ Message [Source Server] $ SetID id
-                            -- work in progress: 
-                            --sendAll conn $ toByteString $ Message [] (WrapList $ replicate 200 0)
-                            let l :: [Int]
-                                l = [   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,40,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,80,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,120,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,140,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,160,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,180,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,200,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,220,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,240,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,260,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,280,
-                                        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,300]
-                                a = serialise l
-                                t = toStrict $ serialise $ L $ replicate (1000*1000) 0
-
-                            --sendAll conn $ serialise (L [])
-
                             
-                            sendAll conn $ toStrict $ serialise $ L $ replicate 1000000 0
-                            sendAll conn $ toStrict $ serialise $ L $l
-                            --sendAll conn $ toStrict $ serialise $ L l
                             writeChan messageQueue $ Message [ConnectionWrapper conn] $ SetID id
                             forkFinally (forever $ do
-                                msg <- recv conn 1024
+                                msg <- recv conn bufferSize
                                 unless (BS.null msg) $ writeChan messageQueue $ fromByteString msg
                                 --unless (BS.null msg) $ print $ fromByteString msg
                                 ) 

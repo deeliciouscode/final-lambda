@@ -35,6 +35,7 @@ import GHC.Float (int2Float)
 
 import Codec.Serialise
 import Data.ByteString.Lazy (fromStrict)
+import Data.ByteString.Lazy as Lazy
 import Codec.Serialise.Encoding (encodeListLen)
 
 data GameState = GS {
@@ -50,6 +51,7 @@ data GameState = GS {
     currentMap :: Maybe (VS.Vector Int)
 
     } 
+
 
 
 -- main :: IO ()
@@ -80,19 +82,14 @@ runClient = do
 
     forkIO $ runTCPClient "127.0.0.1" "3000" $ \socket -> do
         void $ forkIO $ forever $ do
-            msg <- recv socket 1024
-            --print "foo"
-            --print $ "test" ++ show (fromByteString  msg)
-
-            let m =     fromStrict msg
-                a =  (deserialise $ fromStrict msg) :: SerialiseTest-- :: [Int]
-                --b = deserialise <$> fromStrict msg
-            print a
-            --atomically $ writeTChan serverMessages $ fromByteString msg
+            msg <- recv socket bufferSize
+            let d_msg = fromByteString  msg
+            --print d_msg
+            atomically $ writeTChan serverMessages d_msg
+            
 
         void $ forever $ do
             msg <- atomically $ readTChan clientMessages
-            --print msg
             sendAll socket $ toByteString msg
 
 
@@ -141,8 +138,6 @@ render gs = do
     -}
 
     --print $ isNothing $ currentMap gs
-    unless (isNothing $ currentMap gs) $ do
-        print $VS.toList $ (\(Just a) -> a) $ currentMap gs
     return pic
 
 
@@ -220,7 +215,9 @@ onUpdate delta _gameState =
                         isID _ = False
                     if      isNothing (clientID gs) 
                         &&  not ( isID mServerMessage) 
-                        then return gs
+                        then do
+                            print $ "noId" ++ show mServerMessage
+                            return gs
                         else do
                             case (\(Just msg) -> msg) mServerMessage of
                                 -- hier müsste verm. auch ein map handling stattfinden
@@ -243,7 +240,14 @@ onUpdate delta _gameState =
                                     print "mapVector inc"
                                     return gs {currentMap = Just vector}
                                 
-                                _ -> return gs
+                                Message [Source Server] (WrapList l) -> do
+                                    print $ "list" ++ show l
+                                    return gs
+
+                                
+                                p -> do
+                                    print "else"
+                                    return gs
 
 
 

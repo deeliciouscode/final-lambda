@@ -17,33 +17,6 @@ import Codec.Serialise
 import Codec.Serialise.Encoding (Encoding, encodeListLen, encodeWord)
 import Codec.Serialise.Decoding (Decoder, decodeListLen, decodeWord)
 
-data SerialiseTest = 
-        L [Int] 
-    |   R {val1 :: Int, val2 :: [Int]}
-    deriving stock (Generic)
-    deriving anyclass (Serialise)
-    deriving Show
-{-
-instance Serialise SerialiseTest where
-    encode = encodeTest
-    decode = decodeTest
-
-encodeTest :: SerialiseTest -> Encoding
-encodeTest (L list) = encodeListLen 2 <> encodeWord 0 <> Codec.Serialise.encode list
-encodeTest (R v1 v2) = encodeListLen 3 <> encodeWord 1 <> Codec.Serialise.encode v1 <> Codec.Serialise.encode v2
-
-
-decodeTest :: Decoder s SerialiseTest
-decodeTest = do
-    len <- decodeListLen
-    tag <- decodeWord
-
-    --L <$>Codec.Serialise.decode 
-    case (len, tag) of
-      (2, 0) -> L <$> Codec.Serialise.decode 
-      (3, 1) -> R <$> Codec.Serialise.decode <*> Codec.Serialise.decode
-      _      -> fail "invalid Type encoding" 
--}
 
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set

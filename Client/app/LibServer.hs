@@ -34,6 +34,9 @@ import qualified Data.ByteString  as BS
 import Control.Monad ( forever, unless )
 import Network.Socket.ByteString ( recv )
 
+bufferSize :: Int
+bufferSize = 10000000
+
 runTCPServer :: Maybe HostName -> ServiceName -> MVar [Socket] -> Chan Message -> IO a2
 runTCPServer host port mV messageQueue = withSocketsDo $ do
     addr <- resolve
@@ -51,7 +54,7 @@ runTCPServer host port mV messageQueue = withSocketsDo $ do
             setSocketOption sock ReuseAddr 1
             withFdSocket sock setCloseOnExecIfNeeded
             bind sock $ addrAddress addr
-            listen sock 1024
+            listen sock bufferSize 
             return sock
 
         loop sock id =  do
@@ -64,7 +67,7 @@ runTCPServer host port mV messageQueue = withSocketsDo $ do
                             -- work in progress: 
                             writeChan messageQueue $ Message [ConnectionWrapper conn] $ SetID id
                             forkFinally (forever $ do
-                                msg <- recv conn 1024
+                                msg <- recv conn bufferSize
                                 unless (BS.null msg) $ writeChan messageQueue $ fromByteString msg
                                 --unless (BS.null msg) $ print $ fromByteString msg
                                 ) 

@@ -68,6 +68,9 @@ import Data.Vector.Storable as VS (empty, Vector, fromList, toList)
 -- main :: IO ()
 -- main = server
 
+bufferSize :: Int
+bufferSize = 10000000
+
 server :: IO b
 server   = do
     print "server is running..."
@@ -91,17 +94,9 @@ server   = do
                 
                 
                 sendAll conn $ toByteString $ Message [Source Server] p
-                -- (dims, vector) <- getDungeon 420
-                let vector' = VS.empty :: VS.Vector Int
-                    vectorTest :: VS.Vector Int
-                    vectorTest = VS.fromList $ replicate 200 0
-
-                   
-                    f = fromByteString $ toByteString $ Message [] (MapVector vectorTest)
-
-                --print f
-                return ()
-                --sendAll conn $ toByteString $ Message [Source Server] (WrapList $ replicate 200 0)
+                
+                
+                
 
             [Source (Client id), Target (Map i)] -> do
                 let player = case M.lookup id map_playerList of
@@ -111,13 +106,20 @@ server   = do
                 swapMVar playerList newPlayerList
                 readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (PlayerInformation newPlayerList)))
 
+
+
+
             [Source (Client id)] -> do
                 let player = case M.lookup id map_playerList of
                                 Just pI -> pI
                                 _ -> PI (-1) (-1,-1) (0,0)
 
                 case p of
-                    PositionUpdate (x,y)    -> void $ swapMVar playerList $ M.insert id (player {pI_position = (x,y)}) map_playerList
+                    PositionUpdate (x,y)    -> do
+                        
+                        
+                        
+                        void $ swapMVar playerList $ M.insert id (player {pI_position = (x,y)}) map_playerList
                     _                       -> putMVar playerList map_playerList
 
 
