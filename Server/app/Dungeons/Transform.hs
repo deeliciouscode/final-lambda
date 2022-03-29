@@ -8,9 +8,10 @@ import Data.Maybe
 import Data.Vector.Unboxed
 import Data.Vector.Storable as VS
 import qualified Graphics.Image as GI
+import Types
 
 
-transformToVector :: Image VS RGB Double -> IO ((Int, Int), VS.Vector Int)
+transformToVector :: Image VS RGB Double -> IO (PointI, VS.Vector Int)
 transformToVector image = do
                             let imageY = toImageY image
                             let newImage = IF.imap (colorPixel imageY) imageY

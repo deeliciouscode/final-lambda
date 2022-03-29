@@ -26,7 +26,7 @@ import Codec.Picture.Png.Internal.Export
 import Graphics.Gloss.Data.Vector
 
 
--- debugKI :: (Point, [Point]) -> ((Int, Int), VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO()
+-- debugKI :: (Point, [Point]) -> (PointI, VS.Vector (GI.Pixel GI.Y Double)) -> Picture -> IO()
 -- debugKI meta map dungeon = do
 --     let state = uncurry (makeDebugState meta) map
 --     let mvmnt = LST.head $ toListOf (botsL . traverse . movementL) state
@@ -38,19 +38,19 @@ import Graphics.Gloss.Data.Vector
 --     exportPictureToFormat writePng (1000, 1000) black "images/gloss_debug.png" $ renderDebug dungeon state
 --     return ()
 
--- makeDebugState :: (Point, [Point]) -> (Int, Int) -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
+-- makeDebugState :: (Point, [Point]) -> PointI -> VS.Vector (GI.Pixel GI.Y Double) -> KIState
 -- makeDebugState (playerPos, botSpawns) dims vector = State {
 --                                         dims = dims,
 --                                         substrate = transformToIntVec vector,
 --                                         bots = genBotsDebug 1 [LST.head botSpawns]
 --                                     }
 
--- genBotsDebug :: Int -> [(Float, Float)] -> [Entity]
+-- genBotsDebug :: Int -> [PointF] -> Entities
 -- genBotsDebug _ [] = []
 -- genBotsDebug 0 _ = []
 -- genBotsDebug n centers = genBotDebug n centers : genBotsDebug (n-1) centers
 
--- genBotDebug :: Int -> [(Float, Float)] -> Entity
+-- genBotDebug :: Int -> [PointF] -> Entity
 -- genBotDebug i centers = Bot {
 --         stamina = stamina',
 --         style = style',
@@ -73,14 +73,14 @@ import Graphics.Gloss.Data.Vector
 --         strength' = 10 :: Int
 --         awareness' = 10 :: Int
 --         reach' = 100 :: Int
---         position' = (cx, cy) :: (Float, Float)
+--         position' = (cx, cy) :: PointF
 --         homebase' = position'
---         direction' = normalize' (1,1) :: (Float, Float)
+--         direction' = normalize' (1,1) :: PointF
 --         velocity' = 50 :: Float
 --         -- velocity' = 500 :: Float
 --         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool
 
--- calcWallDistanceDebug :: KIState -> MovementAttr -> (Float, (Float,Float), (Float,Float), [(Int,Int)], [Int])
+-- calcWallDistanceDebug :: KIState -> MovementAttr -> (Float, PointF, PointF, [(Int,Int)], [Int])
 -- calcWallDistanceDebug state mvmnt = values
 --     where
 --         vector = view playgroundL state
@@ -103,7 +103,7 @@ import Graphics.Gloss.Data.Vector
 
 --         values = (wallDistance, dir, pos, LST.take 200 pos's, LST.take 200 pixelValues)
 
--- calcWallDistanceLRDebug :: KIState -> MovementAttr -> ((Float, Float), (Float,Float), (Float,Float))
+-- calcWallDistanceLRDebug :: KIState -> MovementAttr -> (PointF, PointF, PointF)
 -- calcWallDistanceLRDebug state mvmnt = ((wallDistanceLeft, wallDistanceRight), dir, pos)
 --     where
 --         vector = view playgroundL state
@@ -140,7 +140,7 @@ import Graphics.Gloss.Data.Vector
 --         playerMe = LST.head players'
 --         picture = pictures $ viewDungeon playerMe dungeon : botsToPicturesDebug green 5 bots' LST.++ entitiesToPictures red 10 players'
 
--- botsToPicturesDebug :: Color -> Float -> [Entity] -> [Picture]
+-- botsToPicturesDebug :: Color -> Float -> Entities -> [Picture]
 -- botsToPicturesDebug _ _ [] = []
 -- botsToPicturesDebug _color size (x:xs) = botPicture : botsToPicturesDebug _color size xs
 --     where
