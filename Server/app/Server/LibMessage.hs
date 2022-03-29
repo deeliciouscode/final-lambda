@@ -17,6 +17,8 @@ import Codec.Serialise
 import Codec.Serialise.Encoding (Encoding, encodeListLen, encodeWord)
 import Codec.Serialise.Decoding (Decoder, decodeListLen, decodeWord)
 import Types
+import Quests.Quests
+import Quests.DataStructures
 
 
 data PlayerInfo = PI {

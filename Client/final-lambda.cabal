@@ -63,5 +63,7 @@ executable final-lambda
         LibMessage
         LibServer
         TrafficTest
+        Quest.Quests
+        Quests.DataStructures
     hs-source-dirs:   app
     default-language: Haskell2010

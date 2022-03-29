@@ -26,6 +26,8 @@ import Data.Binary ( Binary(put, get, putList), decode, encode, Word8, getWord8 
 import Data.Map as M ( Map )
 import Data.Vector.Storable as VS
 
+import Quests.DataStructures
+
 
 import Codec.Serialise
 import Codec.Serialise.Encoding (Encoding, encodeListLen, encodeWord)
@@ -42,7 +44,8 @@ data SerialiseTest =
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set
     pI_health :: (Float, Float), -- (-1,-1) als not set
-    pI_position :: (Float, Float)
+    pI_position :: (Float, Float),
+    activeQuests :: ActiveQuests
 }
     deriving stock Generic
     deriving anyclass Binary
