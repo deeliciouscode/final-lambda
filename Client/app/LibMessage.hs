@@ -27,6 +27,7 @@ import Data.Map as M ( Map )
 import Data.Vector.Storable as VS
 
 import Quests.DataStructures
+import Types
 
 
 import Codec.Serialise
@@ -43,9 +44,10 @@ data SerialiseTest =
 
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set
-    pI_health :: (Float, Float), -- (-1,-1) als not set
-    pI_position :: (Float, Float),
-    activeQuests :: ActiveQuests
+    pI_health :: PointF, -- (-1,-1) als not set
+    pI_position :: PointF,
+    pI_direction :: PointF,
+    pI_velocity :: Float
 }
     deriving stock Generic
     deriving anyclass Binary
@@ -95,7 +97,7 @@ data Payload =
                                                                     -- ebenfalls trigger für PlayerInformation
                 |   Null
                 |   MapVector (VS.Vector Int)
-				|	WrapList [Int]
+                |   WrapList [Int]
     deriving stock Generic
     deriving anyclass Binary
     deriving Show

@@ -234,7 +234,7 @@ onUpdate delta _gameState =
                                 Message [Source (Client i)] (PositionUpdate (x,y)) -> do
                                     let updatedPlayer = case M.lookup i $ list_OtherPlayer gs of
                                                     Just player -> M.insert i player {pI_position = (x,y)} $ list_OtherPlayer gs
-                                                    Nothing -> error "paul du nub!!"--M.insert i (PI (-1) (-1,-1) (0,0)) $ list_OtherPlayer gs
+                                                    Nothing -> M.insert i (PI (-1) (-1,-1) (0,0) (0,0) (-1)) $ list_OtherPlayer gs
                               
                                     return gs {list_OtherPlayer = updatedPlayer}-- {list_OtherPlayer = M.insert i updatedPlayer $ list_OtherPlayer gs}
                                     
