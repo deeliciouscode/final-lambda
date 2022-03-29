@@ -1,9 +1,5 @@
 module KI.Config where
 
-import KI.Structures
-import Graphics.Gloss
-import Dungeons.Config
-
 fpsTest :: Int 
 fpsTest = 60
 

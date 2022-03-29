@@ -8,8 +8,6 @@ import KI.Lenses
 import Helpers
 import Types
 
-import Graphics.Gloss as GLOSS
-import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game
 import Control.Lens
 import Data.Function

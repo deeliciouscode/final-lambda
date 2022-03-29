@@ -68,7 +68,6 @@ executable final-lambda
         KI.Gen
         KI.Lenses
         KI.Structures
-        KI.Debug
         KI.Play
         KI.API
         Server.ServerMinimal   

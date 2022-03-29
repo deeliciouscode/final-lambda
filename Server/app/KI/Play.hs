@@ -26,17 +26,11 @@ import Data.Maybe
 import Data.Tuple
 import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
-import Graphics.Gloss.Data.Vector
 import Server.LibMessage
 import KI.KI
 
-import Dungeons.Gen
 import Dungeons.Transform
-import Dungeons.Config
 import Graphics.Image
-import Data.Vector.Storable as VS
-import Graphics.Gloss.Export
-import Codec.Picture.Png.Internal.Export
 import Text.Printf
 import Types
 import KI.Gen

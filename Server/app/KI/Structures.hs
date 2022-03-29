@@ -1,7 +1,7 @@
 module KI.Structures where
 
 import Data.Vector.Storable
-import Server.LibMessage (PlayerInfo)
+import Server.LibMessage
 import Types
 data Entity = Bot  { 
                   botID :: Int,

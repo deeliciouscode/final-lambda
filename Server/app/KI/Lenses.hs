@@ -5,7 +5,6 @@ import Helpers
 import Types
 
 import Control.Lens
-import Data.Maybe.HT
 import Distribution.Utils.Generic
 import Data.Vector.Storable
 import Server.LibMessage

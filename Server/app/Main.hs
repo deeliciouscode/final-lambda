@@ -5,7 +5,6 @@ import Dungeons.Config
 import Dungeons.Transform
 import KI.KI
 import KI.Play
-import KI.Debug
 import Graphics.Gloss
 import Graphics.Gloss.Game
 import GHC.Real (Integral(toInteger))
