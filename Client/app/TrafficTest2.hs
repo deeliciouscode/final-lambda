@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
-module TrafficTest where
+module TrafficTest2 where
 
 
 
@@ -27,11 +27,12 @@ start :: IO ()
 start = do
 
     forkIO  server
-    threadDelay 1000000
+    line <- getLine
+    print line
     client
 
 buffer :: Int
-buffer = 10000000
+buffer = 100000000
 
 server :: IO ()
 server = runTCPServer Nothing "3000" talk
@@ -66,7 +67,7 @@ runTCPServer mhost port server = withSocketsDo $ do
         setSocketOption sock ReuseAddr 1
         withFdSocket sock setCloseOnExecIfNeeded
         bind sock $ addrAddress addr
-        listen sock 5
+        listen sock  buffer
         return sock
     loop sock = forever $ E.bracketOnError (accept sock) (close . fst)
         $ \(conn, _peer) -> void $
@@ -74,7 +75,7 @@ runTCPServer mhost port server = withSocketsDo $ do
             -- but 'E.bracketOnError' above will be necessary if some
             -- non-atomic setups (e.g. spawning a subprocess to handle
             -- @conn@) before proper cleanup of @conn@ is your case
-            forkFinally (server conn) (const $ gracefulClose conn 5000)
+            forkFinally (server conn) (const $ gracefulClose conn 10000)
 
 
 
@@ -82,14 +83,14 @@ client :: IO ()
 client = runTCPClient "127.0.0.1" "3000" $ \s -> do loop s
     where
         loop s= do
-            sendAll s $ toStrict $ encode $ M $ Prelude.replicate (100*100) 0
-            threadDelay 1
-            sendAll s $ toStrict $ encode B
-            threadDelay 1
-            sendAll s $ toStrict $ encode  A
-            threadDelay 1
-            -- sendAll s $ toStrict$ encode $ M $ Prelude.replicate (1000*1000) 3
-            threadDelay 1
+            sendAll s $ toStrict$ encode $ M $ Prelude.replicate 10 0
+            threadDelay 1000000
+            sendAll s $ toStrict$ encode B
+            threadDelay 1000000
+            sendAll s $ toStrict$ encode  A
+            threadDelay 1000000
+            sendAll s $ toStrict $ encode $ M $ Prelude.replicate (1000*1000) 3
+            threadDelay 1000000
             --Lazy.sendAll s $ encode $ M $ Prelude.replicate 10 1
             --Lazy.sendAll s $ encode $ M $ Prelude.replicate 10 2
             --Lazy.sendAll s $ encode $ M $ Prelude.replicate 10 2
@@ -114,4 +115,3 @@ data Test = A | B | C | M [Int]
     deriving stock Generic
     deriving anyclass Binary
     deriving Show
-

@@ -64,7 +64,7 @@ data Message =  Message [Destionation] Payload
 data Payload =
                     SetID Int                                       -- initiale ID an Client
                 |   PositionUpdate PointF
-                |   MapBotPosition (Map Int PointF)         -- Map from Bot ID to Bot position
+                |   MapBotPosition (Map Int PointF)                 -- Map from Bot ID to Bot position
                 |   Action Int                                      -- ActionID
                 |   HealthChanged Float                             -- wenn positiv: dann Heal
                                                                     -- wenn negativ: damage

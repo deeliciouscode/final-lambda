@@ -63,6 +63,8 @@ executable final-lambda
         LibMessage
         LibServer
         TrafficTest
+        TrafficTest2
+        TrafficTest3
         Quests.Quests
         Quests.DataStructures
         Types
