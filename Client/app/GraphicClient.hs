@@ -1,9 +1,4 @@
-{-
-Generelles ToDo:
-- introduce umgestallten
-- health update message redisgnen
-- wie mit clients umgehen die sich noch nicht "introduced haben"
--}
+
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant if" #-}
 {-# HLINT ignore "Use bimap" #-}
@@ -12,7 +7,12 @@ module GraphicClient where
 import LibMessage
 import LibServer
 --import Server_Minimal
-
+{-
+Generelles ToDo:
+- introduce umgestallten
+- health update message redisgnen
+- wie mit clients umgehen die sich noch nicht "introduced haben"
+-}
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game (playIO)
@@ -23,7 +23,7 @@ import Control.Monad (void, forever, unless, (>=>))
 
 import Network.Socket.ByteString (sendAll, recv)
 import Control.Concurrent.STM (tryReadTChan, newTChan, newTChanIO, TChan, writeTChan, atomically, readTChan)
-import Data.Maybe (isNothing)
+import Data.Maybe (isNothing, fromJust)
 import Data.Set (Set, empty, insert, delete, elems)
 import Data.Set as S
 import Data.Vector.Storable as VS (Vector, empty, (!), imap, fromList, Storable, singleton, toList)
@@ -118,7 +118,7 @@ render gs = do
         
     pic <- loadBMP "images/rechteck_gruen.bmp"
     --print $ currentMap gs
-    {-
+    
     let     
             rowLength = 20
             getTile tileIndex = pic -- dummy
@@ -128,17 +128,21 @@ render gs = do
                         VS.toList $ 
                             VS.imap 
                                 (\index value -> (toIx rowLength index ,value)) $ 
-                            currentMap gs
+                            (\(Just x) -> x) $ currentMap gs
             picture = pictures tileList
 
-            debugText = show (mapID gs) ++ show (position gs)
-            foo = show $ M.toList $ list_OtherPlayer gs
-    print $length $ VS.toList $ currentMap gs
-    -- return $ translate (-100) 0 $ scale 0.1 0.1 $ Text foo
-    -}
+            --debugText = show (mapID gs) ++ show (position gs)
+            --foo = show $ M.toList $ list_OtherPlayer gs
 
-    --print $ isNothing $ currentMap gs
-    return pic
+            foo :: Maybe (VS.Vector Int) -> Picture
+            foo (Just v) = pictures generatePicList
+                where
+                    generateList = VS.toList $ VS.imap (\index value -> (toIx rowLength index ,value)) v
+                    generatePicList = Prelude.map (\((x,y), value) -> pic) generateList 
+                --pictures $ VS.imap (\index x -> pic) $ VS.toList v
+                
+            foo Nothing = pic
+    return $ foo $ currentMap gs
 
 
 handleInput :: Event -> GameState -> IO GameState
@@ -230,7 +234,7 @@ onUpdate delta _gameState =
                                 Message [Source (Client i)] (PositionUpdate (x,y)) -> do
                                     let updatedPlayer = case M.lookup i $ list_OtherPlayer gs of
                                                     Just player -> M.insert i player {pI_position = (x,y)} $ list_OtherPlayer gs
-                                                    Nothing -> M.insert i (PI (-1) (-1,-1) (0,0)) $ list_OtherPlayer gs
+                                                    Nothing -> error "paul du nub!!"--M.insert i (PI (-1) (-1,-1) (0,0)) $ list_OtherPlayer gs
                               
                                     return gs {list_OtherPlayer = updatedPlayer}-- {list_OtherPlayer = M.insert i updatedPlayer $ list_OtherPlayer gs}
                                     
@@ -241,7 +245,7 @@ onUpdate delta _gameState =
                                     return gs {currentMap = Just vector}
                                 
                                 Message [Source Server] (WrapList l) -> do
-                                    print $ "list" ++ show l
+                                    --print $ "list" ++ show l
                                     return gs
 
                                 
