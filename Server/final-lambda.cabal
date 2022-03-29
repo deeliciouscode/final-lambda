@@ -57,6 +57,7 @@ executable final-lambda
         ,   stm == 2.5.0.1
         ,   old-time == 1.1.0.3
         ,   postgresql-simple == 0.6.4
+        ,   text == 1.2.5.0
     other-modules:
         Dungeons.Gen 
         Dungeons.NaiveMST 
@@ -74,7 +75,7 @@ executable final-lambda
         Server.Game     
         Server.LibMessage
         Server.LibServer
-        -- DB.Database
+        DB.Database
         Helpers
 
     hs-source-dirs:   app
