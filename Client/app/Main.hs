@@ -1,8 +1,8 @@
 module Main where
 
-import GraphicClient
+import Server_Chunk
 
 main :: IO ()
 main = do
     putStrLn "executing main client..."
-    runClient
+    start
