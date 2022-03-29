@@ -142,6 +142,7 @@ server   = do
 
         if input == "spawn map" 
             then do
+                print "OK spawning map"
                 (dim, dungeon, meta) <- getDungeon 420
                 writeChan messageQueue $ Message [Source Server] $ MapVector dungeon
 

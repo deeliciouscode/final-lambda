@@ -26,7 +26,7 @@ import Control.Concurrent.STM (tryReadTChan, newTChan, newTChanIO, TChan, writeT
 import Data.Maybe (isNothing, fromJust)
 import Data.Set (Set, empty, insert, delete, elems)
 import Data.Set as S
-import Data.Vector.Storable as VS (Vector, empty, (!), imap, fromList, Storable, singleton, toList)
+import Data.Vector.Storable as VS (Vector, empty, (!), imap, fromList, Storable, singleton, toList, take, slice)
 import Data.Map as M
 import Graphics.Image.Interface (fromIx, toIx)
 
@@ -104,7 +104,7 @@ runClient = do
 
 
         where
-            window = InWindow "WindowName" (300,300) (10,10) -- name size position
+            window = InWindow "WindowName" (1000,1000) (10,10) -- name size position
             fps = 60
             color = makeColor 1 1 1 1 -- Red Green Blue Alpha
 
@@ -131,18 +131,20 @@ render gs = do
                             (\(Just x) -> x) $ currentMap gs
             picture = pictures tileList
 
-            --debugText = show (mapID gs) ++ show (position gs)
-            --foo = show $ M.toList $ list_OtherPlayer gs
 
             foo :: Maybe (VS.Vector Int) -> Picture
             foo (Just v) = pictures generatePicList
                 where
-                    generateList = VS.toList $ VS.imap (\index value -> (toIx rowLength index ,value)) v
-                    generatePicList = Prelude.map (\((x,y), value) -> pic) generateList 
+                    generateList = VS.toList $ VS.imap (\index value -> (toIx rowLength index ,value)) $ VS.slice 300000 310000 v
+                    generatePicList = Prelude.map (\((x,y), value) -> translate (32*int2Float x) (32*int2Float y) $ case value of
+                            0 -> Blank
+                            1 -> pic
+                            _ -> Blank
+                         ) generateList 
                 --pictures $ VS.imap (\index x -> pic) $ VS.toList v
                 
             foo Nothing = pic
-    return $ foo $ currentMap gs
+    return  $ foo $ currentMap gs
 
 
 handleInput :: Event -> GameState -> IO GameState
