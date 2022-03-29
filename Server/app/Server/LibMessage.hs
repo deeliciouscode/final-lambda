@@ -61,7 +61,7 @@ data Payload =
                                                                     -- wenn negativ: damage
                 |   EffectGained Int                                -- Effect ID
                 |   EffectWanished Int                              -- Effect ID
-                |   M String                                   -- Map ID + player update?                               -- 
+                |   M String                                        -- Map ID + player update?                               -- 
                 |   PlayerInformation (Map Int PlayerInfo)
                 |   GetMyInfo                                       -- Ruft stored PlayerInfo aus DataBase ab
                                                                     -- ebenfalls trigger für PlayerInformation

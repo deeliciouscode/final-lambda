@@ -1,6 +1,19 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
+
+
+--------------------------------------------
+
+
+--------------------------------------------
+
+
+
+
+
+
+
 module LibMessage where
 
 import Network.Socket(Socket)
