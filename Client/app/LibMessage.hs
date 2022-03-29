@@ -31,6 +31,14 @@ import Codec.Serialise
 import Codec.Serialise.Encoding (Encoding, encodeListLen, encodeWord)
 import Codec.Serialise.Decoding (Decoder, decodeListLen, decodeWord, decodeListLenOrIndef)
 
+data SerialiseTest = 
+        L [Int] 
+    |   R {val1 :: Int, val2 :: [Int]}
+    deriving stock (Generic)
+    deriving anyclass (Serialise)
+    deriving Show
+
+
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set
     pI_health :: (Float, Float), -- (-1,-1) als not set

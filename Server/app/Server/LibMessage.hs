@@ -16,12 +16,15 @@ import Data.Vector.Storable as VS
 import Codec.Serialise
 import Codec.Serialise.Encoding (Encoding, encodeListLen, encodeWord)
 import Codec.Serialise.Decoding (Decoder, decodeListLen, decodeWord)
+import Types
 
 
 data PlayerInfo = PI {
     pI_mapID :: Int, -- -1 als not set
-    pI_health :: (Float, Float), -- (-1,-1) als not set
-    pI_position :: (Float, Float)
+    pI_health :: PointF, -- (-1,-1) als not set
+    pI_position :: PointF,
+    pI_direction :: PointF,
+    pI_velocity :: Float
 }
     deriving stock Generic
     deriving anyclass Binary
@@ -58,8 +61,8 @@ data Message =  Message [Destionation] Payload
 
 data Payload =
                     SetID Int                                       -- initiale ID an Client
-                |   PositionUpdate (Float, Float)
-                |   MapBotPosition (Map Int (Float, Float))         -- Map from Bot ID to Bot position
+                |   PositionUpdate PointF
+                |   MapBotPosition (Map Int PointF)         -- Map from Bot ID to Bot position
                 |   Action Int                                      -- ActionID
                 |   HealthChanged Float                             -- wenn positiv: dann Heal
                                                                     -- wenn negativ: damage

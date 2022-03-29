@@ -1,5 +1,6 @@
 module Helpers where
 
+import Types
 import System.Random
 import Data.List
 
@@ -40,7 +41,7 @@ round' :: Float -> Integer -> Float
 round' num sg = (fromIntegral . round $ num * f) / f
     where f = 10^sg
 
-normalize' :: (Float, Float) -> (Float, Float)
+normalize' :: PointF -> PointF
 normalize' (0,0) = (0, 0)
 normalize' (vx,vy) = (vx', vy')
                 where
@@ -48,7 +49,7 @@ normalize' (vx,vy) = (vx', vy')
                     vx' = round' (vx / lenV) 2
                     vy' = round' (vy / lenV) 2
 
-normalizeWeighted :: Float -> (Float, Float) -> (Float, Float)
+normalizeWeighted :: Float -> PointF -> PointF
 normalizeWeighted _ (0,0) = (0, 0)
 normalizeWeighted w (vx,vy) = (vx', vy')
                 where
@@ -83,8 +84,8 @@ randomNumber seed min max = fst $ randomR (min,max) (mkStdGen seed)
 eps :: Float 
 eps = 0.00000000000001
 
-rotate90Clockwise :: (Float, Float) -> (Float, Float)
+rotate90Clockwise :: PointF -> PointF
 rotate90Clockwise (x, y) = (y, x*(-1))
 
-rotate90CounterClockwise :: (Float, Float) -> (Float, Float)
+rotate90CounterClockwise :: PointF -> PointF
 rotate90CounterClockwise (x, y) = (y*(-1), x)

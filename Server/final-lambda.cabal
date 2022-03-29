@@ -56,26 +56,26 @@ executable final-lambda
         ,   binary == 0.8.9.0
         ,   stm == 2.5.0.1
         ,   old-time == 1.1.0.3
-        ,   serialise
-        
+        ,   serialise == 0.2.4.0
     other-modules:
         Dungeons.Gen 
         Dungeons.NaiveMST 
         Dungeons.Config
         Dungeons.Transform
         Dungeons.API
-        Dungeons.Structures
         KI.Config
         KI.KI
+        KI.Gen
         KI.Lenses
         KI.Structures
-        KI.Debug
+        KI.Play
         KI.API
         Server.ServerMinimal   
         Server.Game     
         Server.LibMessage
         Server.LibServer
         Helpers
+        Types
 
     hs-source-dirs:   app
     default-language: Haskell2010

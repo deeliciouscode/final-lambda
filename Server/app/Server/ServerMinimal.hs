@@ -101,7 +101,7 @@ server   = do
             [Source (Client id), Target (Map i)] -> do
                 let player = case M.lookup id map_playerList of
                                 Just pI -> pI
-                                _ -> PI (-1) (-1,-1) (0,0)
+                                _ -> PI (-1) (-1,-1) (0,0) (0,0) (-1)
                     newPlayerList = M.insert id (player {pI_mapID = i}) map_playerList
                 swapMVar playerList newPlayerList
                 readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message [Source Server] (PlayerInformation newPlayerList)))
@@ -112,7 +112,7 @@ server   = do
             [Source (Client id)] -> do
                 let player = case M.lookup id map_playerList of
                                 Just pI -> pI
-                                _ -> PI (-1) (-1,-1) (0,0)
+                                _ -> PI (-1) (-1,-1) (0,0) (0,0) (-1)
 
                 case p of
                     PositionUpdate (x,y)    -> do
@@ -152,8 +152,8 @@ server   = do
     {-
     forkIO $ forever $ do
         threadDelay $ round (1000000 / 60)
-        (dims, vector) <- getDungeon 420
-        --print dims
+        (dims, vector, meta) <- getDungeon 420
+        -- print dims
         return ()
     -}
    

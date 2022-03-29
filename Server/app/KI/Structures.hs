@@ -1,41 +1,39 @@
 module KI.Structures where
 
 import Data.Vector.Storable
+import Server.LibMessage
+import Types
 data Entity = Bot  { 
-                  stamina :: Int, 
+                  botID :: Int,
+                  stamina :: Float, 
+                  strength :: Float,
                   style :: String,
-                  strength :: Int,
-                  awareness :: Int, -- How much is it aware of its surroundings
-                  reach :: Int,
-                  homebase :: (Float, Float),
-                  position :: (Float, Float),
-                  direction :: (Float, Float),
+                  awareness :: Float, -- How much is it aware of its surroundings
+                  reach :: Float,
+                  homebase :: PointF,
+                  position :: PointF,
+                  direction :: PointF,
                   velocity :: Float,
                   perimeter :: Float,
                   flocking :: Bool
-                } 
-                | Player { 
-                  stamina :: Int,
-                  strength :: Int,
-                  position :: (Float, Float),
-                  direction :: (Float, Float),
-                  velocity :: Float
+                } | NPC {
+                  botID :: Int
                 }
     deriving (Show)
 
+type Entities = [Entity]
 
 data KIState = State { 
-                dims :: (Int, Int),
+                dims :: PointI,
                 substrate :: Vector Int,
-                bots :: [Entity],
-                players :: [Entity]
+                bots :: Entities
               }
     deriving (Show)
 
---                    position        direction      homebase        veloc  perimeter
-type MovementAttr = ((Float, Float), (Float, Float), (Float, Float), Float, Float)
-
---                          position        direction      velocity 
-type PlayerMovementAttr = ((Float, Float), (Float, Float), Float)
-
--- data Playground = 
+data KIStateDebug = StateD { 
+                dimsD :: PointI,
+                substrateD :: Vector Int,
+                botsD :: Entities,
+                playersD :: [PlayerInfo]
+              }
+    deriving (Show)

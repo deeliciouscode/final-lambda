@@ -1,24 +1,29 @@
 module Dungeons.Config where
 
 --------- Randomness --------- 
-seed :: Int
-seed = 420
+testSeed :: Int
+testSeed = 420
 
---------- Image --------- 
+--------- Dungeon --------- 
 sideLen :: Float
 sideLen = 1000
--- sideLen = 100
 
-midX :: Float
-midX = sideLen / 2
-midY :: Float
-midY = sideLen / 2
+sideLen' :: Int
+sideLen' = round sideLen
+
+midDungeon :: Float
+midDungeon = sideLen / 2
+
+midDungeon' :: Int
+midDungeon' = round midDungeon
 
 --------- Circle Gen --------- 
 nCircles :: Int
 nCircles = 100
+
 sd :: Float
 sd = sideLen / 50
+
 meanRadius :: Float
 meanRadius = sideLen / 50
 
@@ -30,5 +35,5 @@ iterations :: Int
 iterations = 30
 -- iterations = 7
 
-velocity :: Float
-velocity = 1.5
+genVelocity :: Float 
+genVelocity = 1.5
