@@ -2,42 +2,36 @@ module KI.Structures where
 
 import Data.Vector.Storable
 import Server.LibMessage (PlayerInfo)
+import Types
 data Entity = Bot  { 
                   stamina :: Int, 
                   style :: String,
                   strength :: Int,
                   awareness :: Int, -- How much is it aware of its surroundings
                   reach :: Int,
-                  homebase :: (Float, Float),
-                  position :: (Float, Float),
-                  direction :: (Float, Float),
+                  homebase :: PointF,
+                  position :: PointF,
+                  direction :: PointF,
                   velocity :: Float,
                   perimeter :: Float,
                   flocking :: Bool
                 } 
     deriving (Show)
 
+type Entities = [Entity]
 
 data KIState = State { 
-                dims :: (Int, Int),
+                dims :: PointI,
                 substrate :: Vector Int,
-                bots :: [Entity]
-                -- players :: [Entity]
+                bots :: Entities
               }
     deriving (Show)
 
 data KIStateDebug = StateD { 
-                dimsD :: (Int, Int),
+                dimsD :: PointI,
                 substrateD :: Vector Int,
-                botsD :: [Entity],
+                botsD :: Entities,
                 playersD :: [PlayerInfo]
               }
     deriving (Show)
 
---                    position        direction      homebase        veloc  perimeter
-type MovementAttr = ((Float, Float), (Float, Float), (Float, Float), Float, Float)
-
---                          position        direction      velocity 
-type PlayerMovementAttr = ((Float, Float), (Float, Float), Float)
-
--- data Playground = 

@@ -7,7 +7,7 @@ import Prelude as P
 import Dungeons.Config
 import Helpers
 import Dungeons.NaiveMST
-import Dungeons.Structures
+import Types
 import Data.List as LIST
 import qualified Data.List.NonEmpty as LNE
 import Data.Random.Normal
@@ -22,11 +22,10 @@ import Control.Lens as LENS
 import Data.Geometry as GEO
 import Algorithms.Geometry.DelaunayTriangulation.Naive
 import Algorithms.Geometry.DelaunayTriangulation.Types
-import Graphics.Gloss (scale, blank)
 
 ------------------------------- Generate -------------------------------
 
-generateDungeon :: Int -> Float -> IO (Picture, (Float, Float), Circles)
+generateDungeon :: Int -> Float -> IO (Picture, PointF, Circles)
 generateDungeon seed sideLen = do
     let circles = zip (radii seed) (centers seed sideLen)
     let circles' = flockCircles circles
@@ -36,72 +35,27 @@ generateDungeon seed sideLen = do
     let picture = combinePictures triangles mst circles''
     return (picture, snd $ last circles'', LIST.take 30 circles'') 
 
--- saveGloss :: IO ((Float,Float), Circles)
--- saveGloss = do
-    -- exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
---     let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
---     return metaInfo
-
 ------------------------------- Setup -------------------------------
 
 radii :: Int -> [Float]
 radii seed = reverse . sort $ LIST.take nCircles (mkNormals' (meanRadius, sd) seed)
 
-centers :: Int -> Float -> [(Float, Float)]
+centers :: Int -> Float -> [PointF]
 centers seed sideLen = zip xCors yCors
             where
                 xCors = nRandoms nCircles (sideLen * 0.2) (sideLen * 0.8) (mkStdGen seed)
                 yCors = nRandoms nCircles (sideLen * 0.2) (sideLen * 0.8) (mkStdGen (seed+1))
 
-circles :: [(Float, (Float, Float))]
+circles :: Circles 
 circles = zip (radii testSeed) (centers testSeed sideLen)
 
 testCircles :: Circles
 testCircles = [(26.77658,(196.68921,236.81659)),(30.364641,(339.12732,210.95541)),(33.663124,(227.78206,344.70084)),(35.233494,(275.62262,281.27032)),(38.001255,(257.7942,301.88495)),(39.244896,(288.4538,203.14005))]
 
 
-------------------------------- Naively Moving Away from Center -------------------------------
-
-circles' = separateNaively circles
-
-separateNaively :: Circles -> Circles
-separateNaively circles = separateNaivelyI circles 0
-
-separateNaivelyI :: Circles -> Int -> Circles
-separateNaivelyI circles i
-                    | i == length circles = circles
-                    | touchesOtherCircles (circles !! i) circles = separateNaivelyI (driveOut circles i) i
-                    | otherwise = separateNaivelyI circles (i+1)
-
-touchesOtherCircles :: Circle -> Circles -> Bool
-touchesOtherCircles _ [] = False
-touchesOtherCircles circle@(r, (x, y)) ((r', (x', y')):rest)
-                    | r == r' && x == x' && y == y' = touchesOtherCircles circle rest
-                    | distance (x, y) (x', y') <= r + r' = True
-                    | otherwise = touchesOtherCircles circle rest
-
-driveOut :: Circles -> Int -> Circles
-driveOut circles i = LIST.take i circles ++ (circle' : LIST.drop (i+1) circles)
-                where circle' = driveOut' $ circles !! i
-
--- didn't cover edge case where center of circle == center of image 
-driveOut' :: Circle -> Circle
-driveOut' (r, (x,y)) = (r, (newX, newY))
-                where
-                    dx    = x - midDungeon 
-                    dy    = y - midDungeon 
-                    hypo  = sqrt (dx**2 + dy**2)
-                    alpha = asin (dy / hypo)
-                    newDx = cos alpha * hypo * 1.1
-                    newDy = sin alpha * hypo * 1.1
-                    newX  = if dx < 0 then midDungeon + newDx * (-1)
-                            else midDungeon + newDx
-                    newY  = midDungeon + newDy
-
-
 ------------------------------- Flocking -------------------------------    
 
-circles'' = flockCircles circles
+circles' = flockCircles circles
 
 flockCircles :: Circles -> Circles
 flockCircles = stripCircles . iterateOver 0 . enrichCircles
@@ -246,7 +200,7 @@ normalizeSeparation ((r, (x,y), (vx,vy), n):rest) = (r, (x,y), (vx',vy'), n) : n
 -- https://hackage.haskell.org/package/hgeometry-0.14/docs/Data-Geometry-Polygon-Convex.html#t:ConvexPolygon
 
 -- circles''' = removeCircles circles''
-circles''' = removeCircles'' circles''
+circles'' = removeCircles'' circles'
 
 -- TODO: remove the ones closer to center and smaller ones with higher probability
 removeCircles :: Circles -> Circles
@@ -270,14 +224,9 @@ removeCircles'' = LIST.take (round $ fromIntegral nCircles / 2)
 -- https://hackage.haskell.org/package/hgeometry-0.14/docs/Algorithms-Geometry-EuclideanMST.html
 -- https://travellermap.com/tmp/delaunay.htm
 
-testData = [(0, (1,1)),(0, (2,3)),(0, (3,5)),(0, (4,4)),(0, (5,2)),(0, (5,4)),(0, (6,4)),(0, (6,5)),(0, (7,2)),(0, (8,3)),(0, (9,2))]
-showTreeTest = putStr $ drawTree $ fmap show mstTest
-mstTest = makeMST . toNonEmptyList $ toPoints' testData
-trianglesTest = triangulate . toNonEmptyList $ toPoints' testData
-
 showTree = putStr $ drawTree $ fmap show mst
-mst = makeMST . toNonEmptyList $ toPoints' circles'''
-triangles = triangulate . toNonEmptyList $ toPoints' circles'''
+mst = makeMST . toNonEmptyList $ toPoints' circles''
+triangles = triangulate . toNonEmptyList $ toPoints' circles''
 
 toPoints' :: Circles -> [GEO.Point 2 Float EXT.:+ Float]
 toPoints' [] = []
@@ -297,33 +246,17 @@ makeMST = euclideanMST
 
 -- Tutorial: https://andrew.gibiansky.com/blog/haskell/haskell-gloss/
 
-saveGloss :: IO ((Float,Float), Circles)
+saveGloss :: IO (PointF, Circles)
 saveGloss = do
     exportPictureToFormat writePng (round sideLen, round sideLen) black "images/test_gloss.png" objects
-    let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
+    let metaInfo = (snd $ last circles'', LIST.take 30 circles'')
     return metaInfo
 
--- saveGlossDebug :: IO ((Float,Float), Circles)
--- saveGlossDebug = do
---     exportPictureToFormat writePng (round sideLen, round sideLen) black "images/calibration.png" objectsCalibration'
---     let metaInfo = (snd $ last circles''', LIST.take 30 circles''')
---     return metaInfo
-
--- objectsCalibration :: Picture 
--- objectsCalibration = pictures [color white $ circleSolid 100, 
---                                 GLOSS.translate (-midX+100) (-midY+100) $ color red $ circleSolid 100,
---                                 GLOSS.translate (-midX+100) (-midY+900) $ color green $ circleSolid 100,
---                                 GLOSS.translate (-midX+900) (-midY+900) $ color blue $ circleSolid 100]
-
--- objectsCalibration' :: Picture 
--- objectsCalibration' = GLOSS.translate (-midX+900) (-midY+900) $ color white $ circleSolid 100
-
 objects :: Picture
-objects = combinePictures triangles mst circles'''
+objects = combinePictures triangles mst circles''
 
 combinePictures :: Triangulation Float Float -> Tree (GEO.Point 2 Float :+ Float) -> Circles -> Picture
 combinePictures triangles mst circles = pictures $ circlesToPictures circles ++ treeToTunnels triangles mst
--- combinePictures circles = pictures $ [(GLOSS.translate (-midX) (-midY) $ color green $ circleSolid 20)] ++ treeToTunnels mst
 
 circlesToPictures :: Circles -> [Picture]
 circlesToPictures [] = []
@@ -386,7 +319,7 @@ pathToRandomNeigbor triangles point gen = case MAP.lookup (_core point) $ view v
                                                 (i, _) = randomR (0,fromIntegral $ length fList - 1) gen :: (Float, StdGen)
                                                 randy = round i
 
-calcPaths :: (Float, Float) -> (Float, Float) -> (Float, Float) -> [Path]
+calcPaths :: PointF -> PointF -> PointF -> [Path]
 calcPaths (x,y) (x',y') (r,r') = paths
                 where
                     a = y'-y

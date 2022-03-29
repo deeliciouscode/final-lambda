@@ -35,6 +35,6 @@ main = do
     -- let dungeon = png "images/gloss_new.png"
     -- debugKI meta map dungeon
 
-    playWithKI 
-    -- server
+    -- playWithKI 
+    server
 

@@ -5,16 +5,17 @@ module KI.Gen where
 import KI.Structures
 import Dungeons.Config
 import Helpers
+import Types 
 
 import Graphics.Gloss as GLOSS
 import Data.List as LST
 
-genBots :: Int -> Int -> [(Float, (Float,Float))] -> [Entity]
+genBots :: Int -> Int -> [(Float, PointF)] -> Entities
 genBots _ _ [] = []
 genBots 0 _ _ = []
 genBots n seed circles = genBot n seed circles : genBots (n-1) seed circles
 
-genBot :: Int -> Int -> [(Float, Point)] -> Entity
+genBot :: Int -> Int -> [(Float, PointF)] -> Entity
 genBot i seed circles = Bot {
         stamina = stamina',
         style = style',
@@ -53,10 +54,10 @@ genBot i seed circles = Bot {
 
         position'XDelta = randomNumber (seed - i*8393) (-spread) spread
         position'YDelta = randomNumber (seed - i*82933) (-spread) spread
-        position' = (cx + position'XDelta, cy + position'YDelta) :: (Float, Float)
+        position' = (cx + position'XDelta, cy + position'YDelta) :: PointF
         homebase' = position'
 
-        direction' = normalize' (randomNumber (seed - i*1120) (-1) 1, randomNumber (seed - i*11370) (-1) 1) :: (Float, Float)
+        direction' = normalize' (randomNumber (seed - i*1120) (-1) 1, randomNumber (seed - i*11370) (-1) 1) :: PointF
         velocity' = randomNumber (seed - i*5) 25 30 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool

@@ -6,6 +6,7 @@ import KI.Structures
 import Dungeons.Config
 import KI.Lenses
 import Helpers
+import Types
 
 import Graphics.Gloss as GLOSS
 import Graphics.Gloss.Data.ViewPort
@@ -33,7 +34,7 @@ moveAgents players seconds state = newState'
 --     where
 --         (dirX',dirY') = normalizeWeighted v (dirX,dirY)
 
-moveAgent :: KIState -> Float -> [Entity] -> [PlayerInfo] -> MovementAttr -> MovementAttr
+moveAgent :: KIState -> Float -> Entities -> [PlayerInfo] -> MovementAttr -> MovementAttr
 moveAgent state seconds bots players movementAttrs = newMovementAttrs'
     where
         newMovementAttrs = calcNewMovementAttrs state seconds bots players $ countNeighbors movementAttrs bots -- 0 is initial no of neighbors
@@ -45,14 +46,14 @@ updatePosition seconds ((x,y), dir, hb, v, p) (pos, (dirX',dirY'), _, _, _) = ((
         x'' = x + dirX' * v * seconds
         y'' = y + dirY' * v * seconds
 
-countNeighbors :: MovementAttr -> [Entity] -> (MovementAttr, Int, [Int])
+countNeighbors :: MovementAttr -> Entities -> (MovementAttr, Int, [Int])
 countNeighbors mvnt@((x,y), (x',y'), hb, v, p) bots = (mvnt, count, indezes)
     where
         positions = LST.map (view positionL) bots
         indezes = LST.map fst (findItems ((>=) p . distance (x, y)) positions)
         count = LST.length indezes
 
-calcNewMovementAttrs :: KIState -> Float -> [Entity] -> [PlayerInfo] -> (MovementAttr, Int, [Int]) -> MovementAttr
+calcNewMovementAttrs :: KIState -> Float -> Entities -> [PlayerInfo] -> (MovementAttr, Int, [Int]) -> MovementAttr
 calcNewMovementAttrs state seconds bots players (movementAttrs, n, ixs) = newMovementAttrs
     where
         relevantBots = LST.map (fst . snd) (findItems (flip LST.elem ixs . snd) (zip bots [0..]))
@@ -83,10 +84,9 @@ calcWallDistance state mvmnt = wallDistance
         cols = fst (view dimsL state)
         (posX, posY) = view movementPositionL mvmnt -- 900,900
         c = fromIntegral (fst (view dimsL state)) / 2
-        dx = posX - c -- 400
-        dy = posY - c -- 400
-        pos = (c - dy, c + dx) -- (900, 100)
-        -- pos = (posX, 999-posY)
+        dx = posX - c
+        dy = posY - c
+        pos = (c - dy, c + dx)
         dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
 
         pos's = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' dir))) [1..perimeter]
@@ -97,7 +97,7 @@ calcWallDistance state mvmnt = wallDistance
             Nothing -> let infinity = read "Infinity"::Float in infinity
             Just i -> let pos' = pos's !! i in distance pos $ tApp1 fromIntegral pos'
 
-calcWallDistanceLR :: KIState -> MovementAttr -> (Float, Float)
+calcWallDistanceLR :: KIState -> MovementAttr -> PointF
 calcWallDistanceLR state mvmnt = (wallDistanceLeft, wallDistanceRight)
     where
         vector = view playgroundL state
@@ -108,7 +108,6 @@ calcWallDistanceLR state mvmnt = (wallDistanceLeft, wallDistanceRight)
         dx = posX - c -- 400
         dy = posY - c -- 400
         pos = (c - dy, c + dx) -- (900, 100)
-        -- pos = (posX, 999-posY)
         dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
         left = rotateV 0.5 dir
         right = rotateV (-0.5) dir
@@ -155,7 +154,7 @@ addToMovementsAttrsHomebaseAwareness ((x,y), (dirX,dirY), hb@(hbX,hbY), v, p) = 
     where
         mvmnt' = ((x,y), (dirX+hbX,dirY+hbY), hb, v, p)
 
-addToMovementsAttrsWallAwareness :: MovementAttr -> (Float, Float) -> MovementAttr
+addToMovementsAttrsWallAwareness :: MovementAttr -> PointF -> MovementAttr
 addToMovementsAttrsWallAwareness (pos, dir, hb, v, p) (wallDL, wallDR) = (pos, dir', hb, v, p) 
     where
         dir' = if wallDL > wallDR then rotateV 0.5 dir else rotateV (-0.5) dir
@@ -164,7 +163,6 @@ normalizeA :: Int -> MovementAttr -> MovementAttr
 normalizeA n = over movementDirectionL $ normalizeWeighted 1
 
 normalizeC :: Int -> MovementAttr -> MovementAttr
--- normalizeC n mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `flip`) pos . tApp2 (/) (fromIntegral n,fromIntegral n)) mvmnt
 normalizeC n mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `flip`) pos . (tApp2 (/) `flip`) (fromIntegral n,fromIntegral n)) mvmnt
     where
         pos = view movementPositionL mvmnt
@@ -178,14 +176,13 @@ normalizeP mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `fl
         pos = view movementPositionL mvmnt
 
 normalizeH :: MovementAttr -> MovementAttr
--- normalizeC n mvmnt = over movementDirectionL (normalizeWeighted 1 . (tApp2 (-) `flip`) pos . tApp2 (/) (fromIntegral n,fromIntegral n)) mvmnt
 normalizeH mvmnt = over movementDirectionL (normalizeWeighted weight . (tApp2 (-) `flip`) pos) mvmnt
     where
         pos = view movementPositionL mvmnt
         hb = view movementHomebaseL mvmnt
         weight = distance pos hb / 300
 
-normalizeW :: (Float, Float) -> MovementAttr -> MovementAttr
+normalizeW :: PointF -> MovementAttr -> MovementAttr
 normalizeW wallDistLR = over movementDirectionL (normalizeWeighted weight)
     where
         wallDist = uncurry min wallDistLR

@@ -2,6 +2,7 @@
 {-# HLINT ignore "Eta reduce" #-}
 module KI.API where
 
+import Types
 import Server.LibMessage
 import KI.Structures
 import KI.Config
@@ -10,7 +11,7 @@ import KI.KI
 import KI.Gen
 import Data.Vector.Storable as VS
 
-initKI :: Int -> [(Float, (Float,Float))] -> VS.Vector Int -> KIState
+initKI :: Int -> [(Float, PointF)] -> VS.Vector Int -> KIState
 initKI seed botSpawns vector = State {
                                         dims = (sideLen', sideLen'),
                                         substrate = vector,
