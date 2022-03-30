@@ -81,7 +81,7 @@ runClient = do
             (5620,-6708)
             (M.fromList [("player", playerTile), ("op", other_Player_Tile)])
             (-1)
-            (Nothing)
+            Nothing
             Nothing
             (-160,-194)
 
@@ -242,6 +242,8 @@ render gs = do
             --return c
 
 
+-- getPartialImage :: PointI -> Int -> VS.Vector Int -> VS.Vector Int
+-- getPartialImage lowerLeft sideLen vec = 
 
 handleInput :: Event -> GameState -> IO GameState
 handleInput ev@(EventKey (Char '+') Down Modifiers {shift = _shift, ctrl = _ctrl, alt = _alt} (xC, yC)) gameState= do

@@ -1,7 +1,8 @@
 module Main where
 import GraphicClient
---import TrafficTest
+import TrafficTest
 main :: IO ()
 main = do
     putStrLn "executing main client..."
-    runClient 
+    -- runClient
+    start 

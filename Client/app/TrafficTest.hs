@@ -26,7 +26,8 @@ import GHC.Int (Int64)
 start :: IO ()
 start = do
 
-    forkIO  server 
+    forkIO  server
+    threadDelay 1000000
     client
 
 buffer :: Int
@@ -65,7 +66,7 @@ runTCPServer mhost port server = withSocketsDo $ do
         setSocketOption sock ReuseAddr 1
         withFdSocket sock setCloseOnExecIfNeeded
         bind sock $ addrAddress addr
-        listen sock  buffer
+        listen sock 5
         return sock
     loop sock = forever $ E.bracketOnError (accept sock) (close . fst)
         $ \(conn, _peer) -> void $
@@ -81,18 +82,18 @@ client :: IO ()
 client = runTCPClient "127.0.0.1" "3000" $ \s -> do loop s
     where
         loop s= do
-            sendAll s $ toStrict$ encode $ M $ Prelude.replicate 10 0
+            sendAll s $ toStrict $ encode $ M $ Prelude.replicate (100*100) 0
             threadDelay 1
-            sendAll s $ toStrict$ encode B
+            sendAll s $ toStrict $ encode B
             threadDelay 1
-            sendAll s $ toStrict$ encode  A
+            sendAll s $ toStrict $ encode  A
             threadDelay 1
-            sendAll s $ toStrict$ encode $ M $ Prelude.replicate (1000*1000) 3
+            -- sendAll s $ toStrict$ encode $ M $ Prelude.replicate (1000*1000) 3
             threadDelay 1
             --Lazy.sendAll s $ encode $ M $ Prelude.replicate 10 1
             --Lazy.sendAll s $ encode $ M $ Prelude.replicate 10 2
             --Lazy.sendAll s $ encode $ M $ Prelude.replicate 10 2
-            i<- getLine 
+            i <- getLine 
             loop s
     
 
@@ -113,3 +114,4 @@ data Test = A | B | C | M [Int]
     deriving stock Generic
     deriving anyclass Binary
     deriving Show
+

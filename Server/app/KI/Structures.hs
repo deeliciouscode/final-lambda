@@ -17,7 +17,8 @@ data Entity = Bot  {
                   perimeter :: Float,
                   flocking :: Bool
                 } | NPC {
-                  botID :: Int
+                  botID :: Int,
+                  position :: PointF
                 }
     deriving (Show)
 
@@ -30,6 +31,9 @@ data KIState = State {
               }
     deriving (Show)
 
+newtype NPCState = StateNPC {
+                npcs :: Entities
+              }
 data KIStateDebug = StateD { 
                 dimsD :: PointI,
                 substrateD :: Vector Int,

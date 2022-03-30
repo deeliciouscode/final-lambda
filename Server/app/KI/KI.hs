@@ -20,6 +20,8 @@ import Codec.Picture.Png.Internal.Export
 import Graphics.Gloss.Data.Vector
 import Server.LibMessage
 import Distribution.Utils.Generic
+import KI.Config (mapScale)
+import Data.Maybe (catMaybes, mapMaybe)
 
 
 ------------------------------------- Damage -------------------------------------
@@ -28,13 +30,13 @@ applyDamage :: Float -> PlayerInfo -> Int -> KIState -> KIState
 applyDamage damage player _botID state = state''
     where
         bots = view botsL state
-        state' = over (botsL . traverse . combatL) (\cmbt -> if fstOf3 cmbt == _botID then applyDamage' damage cmbt else cmbt) state 
+        state' = over (botsL . traverse . combatL) (\cmbt -> if fstOf3 cmbt == _botID then applyDamage' damage cmbt else cmbt) state
 
         state'' = set botsL (LST.filter ((<=) 1 . strength) $ view botsL state') state'
-        
+
         applyDamage' :: Float -> CombatAttr -> CombatAttr
         applyDamage' damage (id, stam, str) = (id, stam*0.95, str - damage/stam) -- think of good formula
-        
+
 
 ------------------------------------- Movement -------------------------------------
 
@@ -118,21 +120,21 @@ calcWallDistanceLR state mvmnt = (wallDistanceLeft, wallDistanceRight)
     where
         vector = view playgroundL state
         perimeter = view movementPerimeterL mvmnt
-        cols = fst (view dimsL state)
+        cols = fst (view dimsL state) * round mapScale
         (posX, posY) = view movementPositionL mvmnt -- 900,900
-        c = fromIntegral (fst (view dimsL state)) / 2
+        c = fromIntegral (fst (view dimsL state)) * mapScale / 2
         dx = posX - c -- 400
         dy = posY - c -- 400
         pos = (c - dy, c + dx) -- (900, 100)
         dir@(dirX, dirY) = rotate90CounterClockwise $ view movementDirectionL mvmnt
-        left = rotateV 0.5 dir
-        right = rotateV (-0.5) dir
-    
+        left = rotateV 0.7 dir
+        right = rotateV (-0.7) dir
+
         pos'sLeft = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' left))) [1..perimeter]
         pos'sRight = LST.map (tApp1 round . (tApp2 (+) pos . tApp1Arg (*) (normalize' right))) [1..perimeter]
 
-        pixelValuesLeft = LST.map ((!) vector . fromIx cols) pos'sLeft
-        pixelValuesRight = LST.map ((!) vector . fromIx cols) pos'sRight
+        pixelValuesLeft = Data.Maybe.mapMaybe ((!?) vector . fromIx cols) pos'sLeft
+        pixelValuesRight = Data.Maybe.mapMaybe ((!?) vector . fromIx cols) pos'sRight
 
         wallDistanceLeft = case LST.findIndex (1 /=) pixelValuesLeft of
             Nothing -> let infinity = read "Infinity"::Float in infinity
@@ -171,9 +173,9 @@ addToMovementsAttrsHomebaseAwareness ((x,y), (dirX,dirY), hb@(hbX,hbY), v, p) = 
         mvmnt' = ((x,y), (dirX+hbX,dirY+hbY), hb, v, p)
 
 addToMovementsAttrsWallAwareness :: MovementAttr -> PointF -> MovementAttr
-addToMovementsAttrsWallAwareness (pos, dir, hb, v, p) (wallDL, wallDR) = (pos, dir', hb, v, p) 
+addToMovementsAttrsWallAwareness (pos, dir, hb, v, p) (wallDL, wallDR) = (pos, dir', hb, v, p)
     where
-        dir' = if wallDL > wallDR then rotateV 0.5 dir else rotateV (-0.5) dir
+        dir' = if wallDL > wallDR then rotateV 1 dir else rotateV (-1) dir
 
 normalizeA :: Int -> MovementAttr -> MovementAttr
 normalizeA n = over movementDirectionL $ normalizeWeighted 1
@@ -196,7 +198,7 @@ normalizeH mvmnt = over movementDirectionL (normalizeWeighted weight . (tApp2 (-
     where
         pos = view movementPositionL mvmnt
         hb = view movementHomebaseL mvmnt
-        weight = distance pos hb / 300
+        weight = distance pos hb / 3000
 
 normalizeW :: PointF -> MovementAttr -> MovementAttr
 normalizeW wallDistLR = over movementDirectionL (normalizeWeighted weight)

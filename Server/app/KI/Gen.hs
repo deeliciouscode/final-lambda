@@ -4,11 +4,19 @@ module KI.Gen where
 
 import KI.Structures
 import Dungeons.Config
+import KI.Config
 import Helpers
 import Types 
-
+import Data.Vector.Storable as VS
 import Graphics.Gloss as GLOSS
 import Data.List as LST
+
+genNPCs :: Int -> Entities
+genNPCs 0 = [] 
+genNPCs n = genNPC n : genNPCs (n-1)
+
+genNPC :: Int -> Entity
+genNPC n = NPC n (100*fromIntegral n, 200/fromIntegral n)
 
 genBots :: Int -> Int -> [(Float, PointF)] -> Entities
 genBots _ _ [] = []
@@ -46,7 +54,7 @@ genBot i seed circles = Bot {
           | otherwise = "balanced" :: String
 
         -- perimeter' = randomNumber (seed - i*3) 50 80 :: Float
-        perimeter' = 100 :: Float
+        perimeter' = mapScale * 10 :: Float
 
         strength' = randomNumber (seed - i*4) 3 10 :: Float
         awareness' = randomNumber (seed - i*6) 3 10 :: Float
@@ -55,10 +63,22 @@ genBot i seed circles = Bot {
 
         position'XDelta = randomNumber (seed - i*8393) (-spread) spread
         position'YDelta = randomNumber (seed - i*82933) (-spread) spread
-        position' = (cx + position'XDelta, cy + position'YDelta) :: PointF
+        position' = (cx * mapScale + position'XDelta * mapScale, cy * mapScale + position'YDelta * mapScale) :: PointF
         homebase' = position'
 
         direction' = normalize' (randomNumber (seed - i*1120) (-1) 1, randomNumber (seed - i*11370) (-1) 1) :: PointF
-        velocity' = randomNumber (seed - i*5) 25 30 :: Float
+        velocity' = randomNumber (seed - i*5) 75 100 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool
+
+makeSubstrate :: Int -> Int -> VS.Vector Int -> VS.Vector Int -> VS.Vector Int
+makeSubstrate repeats len vector newVector = vector'
+    where
+        (row, rest) = VS.splitAt len vector
+        vector'
+            | VS.null rest = newVector VS.++ extrapolate repeats row
+            | otherwise =  makeSubstrate repeats len rest $ newVector VS.++ extrapolate repeats row
+
+extrapolate :: Int -> VS.Vector Int -> VS.Vector Int
+-- extrapolate n vector = VS.foldl1 (\vec onTop -> vec VS.++ onTop) $ VS.replicate n $ VS.concatMap (\item -> VS.replicate n item) vector
+extrapolate n vector = LST.foldl1 (VS.++) $ LST.replicate n $ VS.concatMap (VS.replicate n) vector
