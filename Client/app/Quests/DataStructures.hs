@@ -8,8 +8,9 @@ import GHC.Generics (Generic)
 
 -- each player has list of QuestInfo, representing the quests he has currently "assigned" to him
 data QuestInfo = QuestInfo
-    { index :: Int
-    , contractor :: String
+    { playerId :: Int
+    , index :: Int
+    , contractor :: Int
     , quest :: Quest
     , state :: QuestState
     }
@@ -53,6 +54,7 @@ data QuestProgress
     = Counter { current :: Int, target :: Int}
     | CountAndCond { condition :: Bool, current :: Int, target :: Int}
     | Flag Bool
+    | BoolComb Bool Bool
     deriving Show
     deriving Eq
     deriving stock Generic
@@ -72,18 +74,18 @@ data Action = BeginQuestline | Accept | MarkAsDone | KeepGoing
 
 type ActiveQuests = [QuestInfo]
 
-data Item = Equipment | Weapon | QuestItem | Pebble
+data Item = Equipment Int | Weapon Int | QuestItem Int
     deriving Show
     deriving Eq
     deriving stock Generic
     deriving anyclass Binary
 
--- type StatPoint = Int
-
 data Contractor = Contractor
-    { name :: String
+    { id :: Int
+    , name :: String
     , questline :: Questline
-    }
+    } 
+    deriving Show
 
 type Questline = [Quest]
 
