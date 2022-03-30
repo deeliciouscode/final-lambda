@@ -6,7 +6,7 @@ testSeed = 420
 
 --------- Dungeon --------- 
 sideLen :: Float
-sideLen = 1000
+sideLen = 100
 
 sideLen' :: Int
 sideLen' = round sideLen
@@ -25,15 +25,15 @@ sd :: Float
 sd = sideLen / 50
 
 meanRadius :: Float
-meanRadius = sideLen / 50
+meanRadius = sideLen / 30
 
 --------- Flocking --------- 
 neighborThreshold :: Float
 neighborThreshold = sideLen / 6
 
 iterations :: Int
-iterations = 30
--- iterations = 7
+-- iterations = 30
+iterations = 3
 
 genVelocity :: Float 
 genVelocity = 1.5

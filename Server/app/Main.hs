@@ -11,6 +11,8 @@ import GHC.Real (Integral(toInteger))
 import Graphics.Image
 import Prelude as P
 import Server.ServerMinimal
+import Dungeons.API
+import KI.Debug
 
 main :: IO ()
 main = do
@@ -28,12 +30,15 @@ main = do
     -- return ()
 
     -- meta <- saveGlossDebug
-    -- let meta = ((756.0964,767.90125),[(950,900)])
-    -- cluster <- readImageRGB VS "images/calibration.png"
-    -- map <- transformToMatrix cluster
-    -- let dungeon = png "images/gloss_new.png"
+    -- let meta = ((756.0964,767.90125),[(60,60)])
+    -- cluster <- readImageRGB VS "images/dungeon420.png"
+    -- map <- transformToVector cluster
+    -- let dungeon = png "images/dungeon420.png"
     -- debugKI meta map dungeon
 
+    -- meta <- getDungeon 420
+    -- print meta
+    -- return ()
     playWithKI 
     -- server
 

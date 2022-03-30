@@ -4,6 +4,7 @@ module KI.Gen where
 
 import KI.Structures
 import Dungeons.Config
+import KI.Config
 import Helpers
 import Types 
 
@@ -46,7 +47,7 @@ genBot i seed circles = Bot {
           | otherwise = "balanced" :: String
 
         -- perimeter' = randomNumber (seed - i*3) 50 80 :: Float
-        perimeter' = 100 :: Float
+        perimeter' = mapScale * 10 :: Float
 
         strength' = randomNumber (seed - i*4) 3 10 :: Float
         awareness' = randomNumber (seed - i*6) 3 10 :: Float
@@ -55,10 +56,10 @@ genBot i seed circles = Bot {
 
         position'XDelta = randomNumber (seed - i*8393) (-spread) spread
         position'YDelta = randomNumber (seed - i*82933) (-spread) spread
-        position' = (cx + position'XDelta, cy + position'YDelta) :: PointF
+        position' = (cx * mapScale + position'XDelta * mapScale, cy * mapScale + position'YDelta * mapScale) :: PointF
         homebase' = position'
 
         direction' = normalize' (randomNumber (seed - i*1120) (-1) 1, randomNumber (seed - i*11370) (-1) 1) :: PointF
-        velocity' = randomNumber (seed - i*5) 25 30 :: Float
+        velocity' = randomNumber (seed - i*5) 75 100 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool

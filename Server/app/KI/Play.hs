@@ -12,7 +12,7 @@ import System.Random ()
 import Graphics.Gloss as GLOSS
 import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.Pure.Game as GAME
-import Graphics.Gloss.Game 
+import Graphics.Gloss.Game
 import Control.Lens as L
 import Data.Function (on)
 import Data.List as LST
@@ -28,6 +28,7 @@ import Graphics.Gloss.Export.Image
 import Codec.Picture.Png.Internal.Export
 import Server.LibMessage
 import KI.KI
+import KI.API
 
 import Dungeons.Transform
 import Graphics.Image
@@ -38,21 +39,22 @@ import KI.Gen
 getDungeonDebug :: Int -> IO (PointI, VS.Vector Int, (PointF, Circles), Picture)
 getDungeonDebug seed = do
     let imagePath = printf "images/dungeon%d.png" seed
-    let meta = ((756.0964,767.90125),[(88.83506,(547.1509,587.6747)),(72.48627,(314.9494,221.06418)),(62.582375,(363.15738,169.11577)),(62.114113,(354.1247,782.55493)),(58.244858,(359.16797,813.0572)),(58.081177,(330.0352,165.16618)),(57.610226,(344.2131,633.53723)),(55.314163,(655.18445,641.47534)),(54.78929,(336.88705,809.55676)),(50.955086,(668.95435,643.7055)),(50.939415,(236.08603,449.1241)),(50.906757,(686.1385,231.98135)),(46.632668,(687.83405,692.10333)),(45.255173,(387.7327,530.61957)),(45.110275,(179.43361,732.58514)),(44.469566,(542.57135,342.3235)),(41.188137,(383.8749,631.3151)),(41.14777,(208.37465,381.1288)),(41.1445,(771.0372,594.44135)),(40.86997,(233.75873,751.0682)),(40.136963,(568.4242,830.293)),(39.142643,(210.4319,297.0638)),(39.031273,(444.33856,494.58423)),(38.350616,(713.8021,616.9759)),(38.225906,(363.00406,838.13007)),(37.08574,(363.42157,574.71796)),(36.84659,(522.4305,751.21216)),(35.170574,(193.56978,719.96014)),(33.632538,(358.8055,805.36914)),(33.472195,(721.2673,778.1685))])
+    let meta = ((78.18364,77.20561),[(10.216839,(57.344578,57.268982)),(8.58196,(29.381441,23.427925)),(7.591571,(35.30174,17.171076)),(7.5447445,(36.936462,78.31102)),(7.157819,(37.773796,81.74373)),(7.141451,(30.39351,18.04513)),(7.0943556,(36.13431,61.621212)),(6.8647494,(64.796936,62.209522)),(6.8122625,(34.97121,81.01571)),(6.4288416,(66.73792,62.57355)),(6.4272747,(24.454586,46.893917)),(6.4240093,(64.745346,28.47063)),(5.9966,(73.014915,62.58034)),(5.8588505,(40.094765,55.86543)),(5.8443604,(20.718353,75.2235)),(5.78029,(53.38563,34.96134)),(5.452147,(39.021988,63.27402)),(5.4481106,(20.56447,38.553875)),(5.4477835,(83.2612,60.783627)),(5.42033,(25.573368,76.75829)),(5.3470297,(57.79042,79.62883)),(5.2475977,(20.746197,30.877884)),(5.2364607,(45.01134,50.45742)),(5.1683946,(73.844696,59.5181)),(5.155924,(38.776905,84.0155)),(5.0419073,(37.209156,57.40132)),(5.017992,(54.460045,73.75773)),(4.8503904,(21.396984,73.84551)),(4.6965866,(37.712048,81.0484)),(4.680553,(71.08122,74.645874))])
     cluster <- readImageRGB VS imagePath
-    let dungeonImage = png $ printf "images/dungeon%d%s.png" seed "Borders"
+    let dungeonImage = png $ printf "images/dungeon%d.png" seed
     (dims, vector) <- transformToVector cluster
     return (dims, vector, meta, dungeonImage)
 
 playWithKI :: IO ()
 -- playWithKI (img, dims, flatImage) = play window background fps (makeKIState dims flatImage) render handleKeys moveAgents
 playWithKI = do
-    (dims, vector, meta, dungeonImage) <- getDungeonDebug 420 
-    GAME.play window background fpsTest (initKIDebug 69 (snd meta) vector) (render dungeonImage) handleKeys (moveAgentsDebug vector)
+    (dims, vector, meta, dungeonImage) <- getDungeonDebug 420
+    let vector' = makeSubstrate 64 sideLen' vector VS.empty
+    GAME.play window background fpsTest (initKIDebug 69 (snd meta) vector') (render dungeonImage) handleKeys (moveAgentsDebug vector')
 
 width, height, offset :: Int
-width = round sideLen
-height = round sideLen
+width = 1000
+height = 1000
 offset = 0
 
 window :: Display
@@ -69,9 +71,9 @@ initKIDebug seed botSpawns vector = StateD {
                                         playersD = [PI {
                                                 pI_mapID = 420, -- -1 als not set
                                                 pI_health = (-1, -1), -- (-1,-1) als not set
-                                                pI_position = (700, 700),
+                                                pI_position = (50 * mapScale, 50 * mapScale),
                                                 pI_direction = (0, 0),
-                                                pI_velocity = 5
+                                                pI_velocity = 5/10 * mapScale
                                             }]
                                     }
 
@@ -92,10 +94,17 @@ render dungeon state = picture
         players = view playersDebugL state
         bots' = botsD state
         playerMe = LST.head players
-        picture = pictures $ viewDungeon playerMe dungeon : botsToPictures green 5 bots' LST.++ entitiesToPictures red 10 players
+        picture = pictures $ viewDungeon playerMe dungeon : botsToPictures green 5 bots' LST.++ entitiesToPictures red 10 players LST.++ [renderPosPl (LST.head players)]
+
+renderPos :: Entity -> Picture
+renderPos bot = GAME.translate (-500) 0 $ color red $ text $ show $ view positionL bot 
+
+renderPosPl :: PlayerInfo -> Picture
+renderPosPl player = GAME.translate (-500) 0 $ color red $ text $ show $ view playerPositionL player 
 
 viewDungeon :: PlayerInfo -> Picture -> Picture
-viewDungeon player dungeon = GAME.translate 0 0 $ GAME.scale mapScale mapScale dungeon
+-- viewDungeon player dungeon = GAME.translate 0 0 $ GAME.scale mapScale mapScale dungeon
+viewDungeon player dungeon = GAME.translate 0 0 $ GAME.scale 10 10 dungeon
 
 botsToPictures :: Color -> Float -> Entities -> [Picture]
 botsToPictures _ _ [] = []
@@ -103,9 +112,9 @@ botsToPictures _color size (x:xs) = botPicture : botsToPictures _color size xs
     where
         pos = position x
         dir = direction x
-        p = perimeter x
-        drawX = fst pos - midDungeon
-        drawY = snd pos - midDungeon
+        p = perimeter x / 10
+        drawX = ((fst pos / mapScale) - midDungeon) * 10
+        drawY = ((snd pos / mapScale) - midDungeon) * 10
         drawPos = (drawX, drawY)
         botPicture = pictures [GLOSS.translate drawX drawY $ color _color $ circleSolid size, color blue $ line [drawPos, tApp2 (+) drawPos $ tApp1 (*p) dir]]
         -- botPicture = GLOSS.translate drawX drawY $ color _color $ circleSolid size -- without the direction lines
@@ -115,16 +124,16 @@ entitiesToPictures _ _ [] = []
 entitiesToPictures _color size (x:xs) = entityPicture : entitiesToPictures _color size xs
     where
         pos = pI_position x
-        drawX = fst pos - midDungeon
-        drawY = snd pos - midDungeon
+        drawX = ((fst pos / mapScale) - midDungeon) * 10
+        drawY = ((snd pos / mapScale) - midDungeon) * 10
         entityPicture = GLOSS.translate drawX drawY $ color _color $ circleSolid size
 
 moveAgentsDebug :: VS.Vector Int -> Float -> KIStateDebug -> KIStateDebug
-moveAgentsDebug vector seconds state = state' 
-    where 
+moveAgentsDebug vector seconds state = state'
+    where
         playerInfos = view playersDebugL state
-        realState = State { 
-                KI.Structures.dims = (1000,1000),
+        realState = State {
+                KI.Structures.dims = (sideLen',sideLen'),
                 substrate = vector,
                 bots = botsD state
               }
@@ -132,8 +141,8 @@ moveAgentsDebug vector seconds state = state'
         playerInfos' = playersD $ over (playersDebugL . L.traverse . playerMovementL) (movePlayers seconds) state
 
         realState' = moveAgents playerInfos seconds realState
-        state' = StateD { 
-                dimsD = (1000, 1000),
+        state' = StateD {
+                dimsD = (sideLen', sideLen'),
                 substrateD = vector,
                 botsD = bots realState',
                 playersD = playerInfos'
