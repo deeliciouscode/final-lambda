@@ -15,7 +15,7 @@ import GHC.Generics (Generic)
 import qualified Data.Text as T
 import Control.Monad
 import Database.PostgreSQL.Simple.ToField
-import Codec.Picture.Metadata (Value(String))
+import Codec.Picture.Metadata (Value(String), insert)
 import Quests.DataStructures
 import Quests.Quests (getReward)
 -- import Quests.DataStructures (QuestInfo(contractor))
@@ -258,4 +258,49 @@ data QuestStateDB = QuestStateDB {qs_id :: Int, qstate :: String} deriving (Show
 --QuestInfo {playerId = 1, index = 2, contractor = 1, quest = Quest {qtype = Collect, progress = Counter {current = 0, target = 10}, reward = StatPoint 10, dialogue = Dialogue {proposition = "Hi", response = "Fuck", end = "Bye"}}, state = Done}
 
 
+
 ----------------------------------------------------------------------------------
+
+insertQuestType id type_ = do
+  connection <- getConnection
+  execute connection  "insert into quest_type (id, type_) values (?,?)" (id,type_)
+
+insertQuestState id type_ = do
+  connection <- getConnection
+  execute connection  "insert into quest_state (id, type_) values (?,?)" (id,type_)
+
+insertItemType id type_ = do
+  connection <- getConnection
+  execute connection  "insert into item_type (id, type_) values (?,?)" (id,type_)
+
+insertContractor id name = do
+  connection <- getConnection
+  execute connection  "insert into contractor (id, type_) values (?,?)" (id,name)
+
+insertQuest id name = do
+  connection <- getConnection
+  execute connection  "insert into quest (id, q_type) values (?,?)" (id,name)
+
+insertQuestLine id q_id ql_id = do
+  connection <- getConnection
+  execute connection  "insert into questline (id, q_id, ql_id) values (?,?,?)" (id, q_id, ql_id)
+
+insertItem id i_type = do
+  connection <- getConnection
+  execute connection  "insert into item (id, q_type) values (?,?)" (id,i_type)
+
+insertReward id q_id item stat = do
+  connection <- getConnection
+  execute connection  "insert into reward (id, q_id item, stat_point) values (?,?,?)" (id, q_id item, stat)
+
+insertProgress id q_id cur tar surv cond = do
+  connection <- getConnection
+  execute connection  "insert into progress (id, q_id, i_id) values (?,?,?)" (id, q_id i_id)
+
+insertDialogue id q_id prop opt1 opt2 end = do
+  connection <- getConnection
+  execute connection  "insert into dialogue (id, q_id, proposition, option1, option2, sendoff) values (?,?)" (id, q_id i_id, prop, opt1, opt2, end)
+
+insertQuestInfo id p_id c_id q_id state = do
+  connection <- getConnection
+  execute connection  "insert into quest_info (id, player_id, c_id, quest, state) values (?,?,?,?,?)" (id, p_id, c_id, q_id, state)
