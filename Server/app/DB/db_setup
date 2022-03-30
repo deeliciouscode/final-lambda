@@ -1,0 +1,84 @@
+create table if not exists quest_state (
+    id serial primary key,
+    type_ text
+);
+create table if not exists quest_type (
+    id serial primary key,
+    type_ text
+);
+
+create table if not exists item_type(
+    id serial primary key,
+    type_ text
+);
+
+create table if not exists quest (
+     id serial primary key,
+     q_type int references quest_type(id)
+);
+
+create table contractor (
+    id serial primary key,
+    name varchar
+);
+
+create table if not exists questline(
+    id serial primary key ,
+    q_id int references quest(id),
+    ql_id int references contractor(id)
+);
+
+create table if not exists item (
+    id serial primary key,
+    i_type int references item_type(id)
+);
+
+create table if not exists reward (
+    id serial primary key,
+    q_id int references quest(id),
+    item int references item(id),
+    stat_point int
+);
+
+create table if not exists progress (
+    id serial primary key ,
+    q_id int references quest(id),
+    current_ Integer,
+    target Integer,
+    survived bool,
+    condition bool
+);
+
+create table if not exists dialogue (
+    id serial primary key,
+    q_id int references quest(id),
+    proposition varchar,
+    option1 varchar,
+    option2 varchar,
+    sendoff varchar
+);
+
+create table if not exists quest_info (
+    id serial primary key,
+    player_id int references player_info(id),
+    c_id int references contractor(id),
+    quest int references quest(id),
+    state int references quest_state(id)
+);
+
+----------------Server side Player info---------------------
+
+create table if not exists player_info (
+    id serial primary key,
+    mapId int,
+    health_max int,
+    health_cur int,
+    position_x int,
+    position_y int
+);
+
+create table if not exists player_information (
+    id int primary key,
+    info player_info
+);
+

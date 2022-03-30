@@ -77,6 +77,7 @@ executable final-lambda
         Server.LibMessage
         Server.LibServer
         DB.Database
+        DB.DataStructures
         Helpers
         Types
         Quests.Quests
