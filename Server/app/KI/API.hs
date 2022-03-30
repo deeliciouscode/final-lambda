@@ -11,6 +11,7 @@ import KI.KI
 import KI.Gen
 import Data.Vector.Storable as VS
 import Data.List as LS
+import Helpers
 
 initKI :: Int -> [(Float, PointF)] -> VS.Vector Int -> KIState
 initKI seed botSpawns vector = State {
@@ -19,20 +20,18 @@ initKI seed botSpawns vector = State {
                                         bots = genBots nBots seed botSpawns
                                     }
 
-makeSubstrate :: Int -> Int -> VS.Vector Int -> VS.Vector Int -> VS.Vector Int
-makeSubstrate repeats len vector newVector = vector'
-    where 
-        (row, rest) = VS.splitAt len vector 
-        vector'
-            | VS.null rest = newVector VS.++ extrapolate repeats row
-            | otherwise =  makeSubstrate repeats len rest $ newVector VS.++ extrapolate repeats row 
-
-extrapolate :: Int -> VS.Vector Int -> VS.Vector Int
--- extrapolate n vector = VS.foldl1 (\vec onTop -> vec VS.++ onTop) $ VS.replicate n $ VS.concatMap (\item -> VS.replicate n item) vector
-extrapolate n vector = LS.foldl1 (VS.++) $ LS.replicate n $ VS.concatMap (VS.replicate n) vector
-
 updateKI :: [PlayerInfo] -> Float -> KIState -> KIState
 updateKI players seconds state = moveAgents players seconds state
 
 attackKI :: Float -> PlayerInfo -> Int -> KIState -> KIState
 attackKI damage player botID state = applyDamage damage player botID state
+
+initNPCs :: Entities
+initNPCs = genNPCs nNPCs
+
+getNpcID :: Entities -> PointF -> Int
+getNpcID npcs pos = id
+    where
+        zipped = zip [0..] (LS.map (distance pos . position)  npcs) :: [(Int, Float)]
+        distances = sortBy (\a b -> if snd a >= snd b then GT else LT) zipped
+        id = botID $ npcs !! fst (LS.head distances)

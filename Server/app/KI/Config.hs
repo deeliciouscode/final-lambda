@@ -11,3 +11,6 @@ effectiveScale = mapScale -- depends on map input size, rn its 500x500 and game 
 
 nBots :: Int
 nBots = 50
+
+nNPCs :: Int
+nNPCs = 5

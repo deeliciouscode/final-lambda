@@ -7,9 +7,16 @@ import Dungeons.Config
 import KI.Config
 import Helpers
 import Types 
-
+import Data.Vector.Storable as VS
 import Graphics.Gloss as GLOSS
 import Data.List as LST
+
+genNPCs :: Int -> Entities
+genNPCs 0 = [] 
+genNPCs n = genNPC n : genNPCs (n-1)
+
+genNPC :: Int -> Entity
+genNPC n = NPC n (100*fromIntegral n, 200/fromIntegral n)
 
 genBots :: Int -> Int -> [(Float, PointF)] -> Entities
 genBots _ _ [] = []
@@ -63,3 +70,15 @@ genBot i seed circles = Bot {
         velocity' = randomNumber (seed - i*5) 75 100 :: Float
         -- velocity' = 500 :: Float
         flocking' = randomNumber (seed - i*12) (0 :: Int) (1 :: Int) == 1 :: Bool
+
+makeSubstrate :: Int -> Int -> VS.Vector Int -> VS.Vector Int -> VS.Vector Int
+makeSubstrate repeats len vector newVector = vector'
+    where
+        (row, rest) = VS.splitAt len vector
+        vector'
+            | VS.null rest = newVector VS.++ extrapolate repeats row
+            | otherwise =  makeSubstrate repeats len rest $ newVector VS.++ extrapolate repeats row
+
+extrapolate :: Int -> VS.Vector Int -> VS.Vector Int
+-- extrapolate n vector = VS.foldl1 (\vec onTop -> vec VS.++ onTop) $ VS.replicate n $ VS.concatMap (\item -> VS.replicate n item) vector
+extrapolate n vector = LST.foldl1 (VS.++) $ LST.replicate n $ VS.concatMap (VS.replicate n) vector
