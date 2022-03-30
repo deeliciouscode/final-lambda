@@ -13,7 +13,7 @@ isQuestFinished :: QuestInfo -> Bool
 isQuestFinished QuestInfo {index, contractor, quest, state} = state == Done
 
 --TODO how should this conversation be handeld?
-interactWithContractor :: ActiveQuests -> String -> Questline -> ActiveQuests
+interactWithContractor :: ActiveQuests -> Int -> Questline -> ActiveQuests
 interactWithContractor pq c ql = 
     let action = getAvailableAction c pq
         currentPlayerQuest = getQuestInfoByContractor pq c
@@ -51,28 +51,28 @@ helper Quest{qtype, progress, reward, dialogue} = helper' dialogue
 helper' Dialogue {proposition, response, end} = (proposition, end)
 
 -- the contractor should evaluate if the player has no quest from him, is in the works of completing a quest for him or is eligable for a new quest
-getAvailableAction :: String -> ActiveQuests -> Action
+getAvailableAction :: Int -> ActiveQuests -> Action
 -- getAvailableAction c [] = BeginQuestline
-getAvailableAction c pq@(QuestInfo {index, contractor, quest, state}:xs) = 
+getAvailableAction c pq@(QuestInfo {playerId, index, contractor, quest, state}:xs) = 
     if hasQuestFromContractor pq c
         then getAvailableAction' pq c
         else BeginQuestline
 
-getAvailableAction' :: ActiveQuests -> String -> Action
+getAvailableAction' :: ActiveQuests -> Int -> Action
 getAvailableAction' pq c = 
     let quest = fromJust $ getQuestByContractor pq c
     in if isQuestDone quest
         then MarkAsDone
         else KeepGoing
 
-hasQuestFromContractor :: ActiveQuests -> String -> Bool
+hasQuestFromContractor :: ActiveQuests -> Int -> Bool
 hasQuestFromContractor [] c = False
-hasQuestFromContractor (QuestInfo {index, contractor, quest, state}:xs) c = 
+hasQuestFromContractor (QuestInfo {playerId, index, contractor, quest, state}:xs) c = 
     contractor == c || hasQuestFromContractor xs c
 ---------------------------------------------------------------------------------------
 
 -- replace the players current quest (in regards to the given contractor) with the next one in the questline
-progressQuestline :: ActiveQuests -> String -> Questline -> ActiveQuests
+progressQuestline :: ActiveQuests -> Int -> Questline -> ActiveQuests
 progressQuestline pq c ql = 
     let index = getQuestIndex pq c
         nextQuest = getNextFromQl ql index
@@ -86,7 +86,7 @@ getNextFromQl ql i =
         index = i + 1
     in Map.lookup index questMap
 
-getQuestIndex :: ActiveQuests -> String -> Int
+getQuestIndex :: ActiveQuests -> Int -> Int
 getQuestIndex pq@(qi@QuestInfo {index, contractor, quest}:xs) c =
     if contractor == c
         then index
@@ -94,24 +94,24 @@ getQuestIndex pq@(qi@QuestInfo {index, contractor, quest}:xs) c =
 
 
 -- get list of current quests; replace the quest of given contractor with the quest passed to this function in the players currently held quests
-acceptQuest :: ActiveQuests -> Int -> String -> Quest -> ActiveQuests
+acceptQuest :: ActiveQuests -> Int -> Int -> Quest -> ActiveQuests
 acceptQuest pq i c q = addQuest (filterQuests pq c) i c q
 
 -- accept quest helper
-addQuest :: ActiveQuests -> Int -> String -> Quest -> ActiveQuests
+addQuest :: ActiveQuests -> Int -> Int -> Quest -> ActiveQuests
 addQuest pq i c q = QuestInfo {index=i, contractor=c, quest=q, state = OnGoing} : pq
 
 -- accept quest helper TODO: what happens if only one c and match?
-filterQuests :: ActiveQuests -> String -> ActiveQuests
+filterQuests :: ActiveQuests -> Int -> ActiveQuests
 filterQuests [] c = []
-filterQuests (QuestInfo {index, contractor, quest, state}:xs) c = 
+filterQuests (QuestInfo {playerId, index, contractor, quest, state}:xs) c = 
     if contractor /= c 
         then QuestInfo {index, contractor, quest, state} : filterQuests xs c
         else  filterQuests xs c
 -----------------------------------------------------------------------
 
-redeemQuest :: ActiveQuests -> String -> Maybe QuestReward
-redeemQuest pq@(QuestInfo {index, contractor, quest}:xs) c =
+redeemQuest :: ActiveQuests -> Int -> Maybe QuestReward
+redeemQuest pq@(QuestInfo {playerId, index, contractor, quest}:xs) c =
     let quest' = fromJust $ getQuestByContractor pq c 
     in if isQuestDone quest'
         then Just $ getReward quest'
@@ -132,14 +132,14 @@ getQuest :: QuestInfo -> Quest
 getQuest QuestInfo {index, contractor, quest} = quest
 
 -- no issues due to application flow & lazy eval
-getQuestByContractor :: ActiveQuests -> String -> Maybe Quest
-getQuestByContractor (QuestInfo {index, contractor, quest}:xs) c = 
+getQuestByContractor :: ActiveQuests -> Int -> Maybe Quest
+getQuestByContractor (QuestInfo {playerId, index, contractor, quest}:xs) c = 
     if contractor == c
         then Just quest
         else getQuestByContractor xs c
 getQuestByContractor [] c = Nothing
 
-getQuestInfoByContractor :: ActiveQuests -> String -> Maybe QuestInfo
+getQuestInfoByContractor :: ActiveQuests -> Int -> Maybe QuestInfo
 getQuestInfoByContractor (qi@QuestInfo {index, contractor, quest}:xs) c = 
     if contractor == c
         then Just qi
@@ -178,9 +178,9 @@ quest6 = Quest Discover (Flag True) (StatPoint 1) (Dialogue "Hi" "foo" "Bye")
 
 quest7 = Quest Discover (Flag False) (StatPoint 3) (Dialogue "Hi" "lala" "Bye")
 
-testInfo1 = QuestInfo 1 "David" quest1 OnGoing
-testInfo2 = QuestInfo 2 "Thomas" quest2 OnGoing
-testInfo3 = QuestInfo 3 "Paul" quest3 OnGoing
+testInfo1 = QuestInfo 1 1 1 quest1 OnGoing
+testInfo2 = QuestInfo 2 2 2 quest2 OnGoing
+testInfo3 = QuestInfo 3 3 3 quest3 OnGoing
 
 myQuests = [testInfo1, testInfo2, testInfo3]
 
