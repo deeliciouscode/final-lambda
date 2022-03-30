@@ -88,13 +88,14 @@ server   = do
         Message l p <- readChan messageQueue
         map_playerList <- readMVar  playerList
         list_connection <- readMVar connectionList
-        print p
+        --print p
         case l of
             [ConnectionWrapper conn] -> do
                 
                 
                 sendAll conn $ toByteString $ Message [Source Server] p
-                
+                --threadDelay 1
+                --sendAll conn $ toByteString $ Message [Source Server] (MapVector $ VS.fromList $ replicate (1000*1000) 0)
                 
                 
 
@@ -125,6 +126,9 @@ server   = do
 
                 readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message l p))
 
+            [Source Server] -> do
+                readMVar connectionList >>= mapM_ (`sendAll` toByteString  (Message l p))
+
             notImplementedMessage -> do
                 --putMVar playerList map_playerList
                 print $ "Message: " ++ show notImplementedMessage ++  "not yet supportet"
@@ -135,7 +139,15 @@ server   = do
     ----------------------------------------------------------
     forkIO $ forever $ do
         input <- getLine
-        print input
+
+        if input == "spawn map" 
+            then do
+                print "OK spawning map"
+                (dim, dungeon, meta) <- getDungeon 420
+                writeChan messageQueue $ Message [Source Server] $ MapVector dungeon
+
+
+            else print input 
         
         --writeChan messageQueue $ Message [Source Server] $ M input
     -- send 
