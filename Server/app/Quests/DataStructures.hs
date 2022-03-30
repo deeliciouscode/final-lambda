@@ -80,13 +80,12 @@ data Item = Equipment Int | Weapon Int | QuestItem Int
     deriving stock Generic
     deriving anyclass Binary
 
--- type StatPoint = Int
-
 data Contractor = Contractor
     { id :: Int
     , name :: String
     , questline :: Questline
-    } deriving Show
+    } 
+    deriving Show
 
 type Questline = [Quest]
 

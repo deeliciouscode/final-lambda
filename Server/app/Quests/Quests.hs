@@ -46,13 +46,13 @@ interactWithContractor id pq c ql =
 getDialogue :: Maybe QuestInfo -> (String, String)
 getDialogue qi = helper $ getQuest $ fromJust qi
 
+helper :: Quest -> (String, String)
 helper Quest{qtype, progress, reward, dialogue} = helper' dialogue
 
 helper' Dialogue {proposition, response, end} = (proposition, end)
 
 -- the contractor should evaluate if the player has no quest from him, is in the works of completing a quest for him or is eligable for a new quest
 getAvailableAction :: Int -> ActiveQuests -> Action
--- getAvailableAction c [] = BeginQuestline
 getAvailableAction c pq@(QuestInfo {playerId, index, contractor, quest, state}:xs) = 
     if hasQuestFromContractor pq c
         then getAvailableAction' pq c
@@ -149,7 +149,6 @@ getQuestInfoByContractor [] c = Nothing
 setQuestDone :: QuestInfo -> QuestInfo
 setQuestDone QuestInfo {playerId, index, contractor, quest, state} = QuestInfo {playerId, index, contractor, quest, state = Done}
 
-
 getQlFromContractor :: Contractor -> Questline
 getQlFromContractor Contractor {Quests.DataStructures.id, name, questline} = questline
 
@@ -171,13 +170,10 @@ qlToQlMap ql = Map.fromList $ zip [1..] ql
 quest1 = Quest Collect (Counter 1 2) (StatPoint 1) (Dialogue "Hi" "foo" "Bye")
 quest2 = Quest Kill (CountAndCond True 1 2) (StatPoint 1) (Dialogue "Hi" "foo" "Bye")
 quest3 = Quest Discover (Flag True) (StatPoint 1) (Dialogue "Hi" "lala" "Bye")
-
 quest4 = Quest Discover (Flag True) (StatPoint 1) (Dialogue "Hi" "foo" "Bye")
 quest5 = Quest Discover (Flag True) (StatPoint 1) (Dialogue "Hi" "foo" "Bye")
 quest6 = Quest Discover (Flag True) (StatPoint 1) (Dialogue "Hi" "foo" "Bye")
-
 quest7 = Quest Discover (Flag False) (StatPoint 3) (Dialogue "Hi" "lala" "Bye")
-
 testInfo1 = QuestInfo 1 1 1 quest1 OnGoing
 testInfo2 = QuestInfo 2 2 2 quest2 OnGoing
 testInfo3 = QuestInfo 3 3 3 quest3 OnGoing
